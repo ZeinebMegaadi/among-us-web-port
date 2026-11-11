@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
     // loadEnv reads .env so proxy target is configurable without hardcoding IPs
     const env = loadEnv(mode, process.cwd(), 'VITE_');
 
-    // Single backend process serves Express API + Socket.IO on one port (default 3000).
+    // Single backend process serves Express API + WebSocket (/ws) on one port (default 3000).
     // Prefer VITE_PROXY_TARGET so client-side VITE_BACKEND_URL can stay unset in dev
     // (client then uses same-origin → this proxy). Fall back to VITE_BACKEND_URL / localhost.
     const backendTarget =
@@ -22,8 +22,8 @@ export default defineConfig(({ mode }) => {
         server: {
             port: 8080,
             proxy: {
-                // Socket.IO (HTTP long-polling + WebSocket upgrade)
-                '/socket.io': {
+                // WebSocket (game events)
+                '/ws': {
                     target: backendTarget,
                     changeOrigin: true,
                     secure: false,
