@@ -9,6 +9,8 @@ import EndGame from "./components/EndGame.jsx";
 import {EventBus} from './game/EventBus';
 import RoleIndicator from "./components/RoleIndicator.jsx";
 import { ToastContainer } from "./components/Toast.jsx";
+import PingIndicator from "./components/PingIndicator.jsx";
+import pingStyles from "./components/PingIndicator.module.css";
 const PAGES = {MENU: 'lobby', WAITING: 'waiting', GAME: 'game', GAMEEND: 'gameend'};
 
 function App() {
@@ -176,6 +178,7 @@ function App() {
   return (
     <div id="app">
       <ToastContainer />
+      <PingIndicator className={debug.current ? pingStyles.belowBadge : ''} />
       {error && <p className={styles.error}>{error}</p>}
       {debug.current && <div className={`${styles.statusBadge} ${isConnected ? styles.connected : styles.disconnected}`}>
         {isConnected ? 'Connected' : 'Disconnected'}
