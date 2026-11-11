@@ -1,4 +1,4 @@
-import { Server } from "socket.io";
+import { SocketServer } from "./socket/wsServer.js";
 import express from "express";
 import apiRouter from "./routes/api.js";
 import cors from "cors";
@@ -63,19 +63,11 @@ app.use('/', apiRouter);
 
 const server = http.createServer(app);
 
-const io = new Server(server, {
-    cors: {
-        origin(origin, callback) {
-            if (isOriginAllowed(origin)) {
-                callback(null, origin || true);
-            } else {
-                console.warn('Socket.IO CORS blocked origin:', origin);
-                callback(new Error(`CORS blocked for origin: ${origin}`));
-            }
-        },
-        methods: ['GET', 'POST'],
-        credentials: true,
-    },
+// Plain WebSocket server on the same HTTP server/port as the REST API.
+// Clients connect to ws(s)://<backend-host>/ws
+const io = new SocketServer(server, {
+    path: "/ws",
+    isOriginAllowed,
 });
 
 io.on("connection", (socket) => {
