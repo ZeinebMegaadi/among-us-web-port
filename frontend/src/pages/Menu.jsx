@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import socketService from '../services/socket';
 import styles from './room.module.css';
-import { apiUrl } from '../utils/urls.js';
+import { apiFetch } from '../utils/urls.js';
 import {Button} from '../components/Button.jsx';
 
 /**
@@ -144,7 +144,7 @@ export function Menu({onJoinGame}) {
       return;
     }
     console.log('Joining room:', roomId);
-    fetch(apiUrl(`/rooms/${roomId}`))
+    apiFetch(`/rooms/${roomId}`)
       .then((response) => {
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
         return response.json();
@@ -252,7 +252,7 @@ function roomsToMap(data) {
 }
 
 async function fetchRooms() {
-  const response = await fetch(apiUrl('/rooms'));
+  const response = await apiFetch('/rooms');
   if (!response.ok) {
     throw new Error(`Failed to fetch rooms: ${response.status}`);
   }

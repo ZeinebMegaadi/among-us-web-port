@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 import { socketService } from '../../services/socket.js';
-import { apiUrl } from '../../utils/urls.js';
+import { apiFetch } from '../../utils/urls.js';
 import { EventBus } from '../EventBus';
 import { createPlayer } from '../utils/playerFactory.js';
 
@@ -174,7 +174,7 @@ export class BaseGameScene extends Scene {
 
         console.log("Fetching room data for playerId:", playerId, "socket id:", socket?.id);
 
-        const response = await fetch(apiUrl(`/player/room/${playerId}`));
+        const response = await apiFetch(`/player/room/${playerId}`);
         if (!response.ok) {
             const errBody = await response.text().catch(() => '');
             console.error("Failed to fetch player room:", response.status, errBody);
