@@ -1,0 +1,25 @@
+{
+  "name": "among-us-arena",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Among Us Arena: one authoritative Node server, Electron clients, TCP and UDP versions",
+  "type": "module",
+  "main": "client/electron/main.js",
+  "scripts": {
+    "start:server": "node server/main.js",
+    "start:client": "electron client/electron/main.js",
+    "server:tcp": "node server/main.js --proto tcp",
+    "server:udp": "node server/main.js --proto udp",
+    "client:tcp": "electron client/electron/main.js --proto tcp",
+    "client:udp": "electron client/electron/main.js --proto udp",
+    "build:ui": "npm --prefix frontend run build",
+    "test:transport": "node tools/transport-test.mjs",
+    "test:all": "node tools/transport-test.mjs --all"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "electron": "^37.10.3"
+  }
+}
