@@ -39,13 +39,20 @@ The game exists in **two versions with identical rules and features**. Only the 
 
 1. Each player enters a name, a password, and optionally a color. A new name creates an account.
    The same name later is a login: a wrong password is refused. The server assigns the player id.
-2. One player creates a room; the others see it appear in their room list and join it.
-3. The host starts the game. Each player privately learns whether they are the imposter.
-4. The imposter kills crewmates (10 s cooldown, must be close). Any living player can call an emergency
-   meeting (once per game); everyone alive votes for a suspect or skips.
-5. **Crew wins** if the imposter is voted out (or leaves). **Imposter wins** by killing both crewmates.
-6. The end screen shows the winner and the **ranking**; **Play again** starts a new game in the same room
-   (the imposter role rotates and scores add up).
+2. One player creates a room (at most 4 players; the game needs 3); the others see it appear in their room
+   list and join it. A scoreboard in the top-right corner shows each player's points in this room.
+3. The host starts the game. Each player privately learns whether they are the imposter. A **3-minute**
+   clock starts (the server owns it).
+4. The imposter kills crewmates (10 s cooldown, shown on the KILL button; must be close). A killed player
+   becomes a **ghost**: they can still walk around and watch, but nobody else sees them, and they cannot
+   vote or call a meeting. Any living player can call an emergency meeting (once per game; the USE button
+   turns grey afterwards); everyone alive votes for a suspect or skips. The votes are revealed when the
+   meeting ends.
+5. **Crew wins** if the imposter is voted out, leaves, or the clock runs out. **Imposter wins** by
+   killing both crewmates.
+6. The end screen shows the winner, why the game ended and the **ranking** (a player who left during the
+   game is still listed, marked "left"); **Play again** starts a new game in the same room (the imposter
+   role rotates and scores add up).
 
 | Event | Points |
 |---|---|
@@ -57,7 +64,7 @@ The game exists in **two versions with identical rules and features**. Only the 
 | Key / button | Action |
 |---|---|
 | `Z` `Q` `S` `D` | move up / left / down / right (AZERTY layout) |
-| **KILL** (imposter only) | kill the nearest player |
+| **KILL** (imposter only) | kill the nearest player (lights up within range; shows the cooldown in seconds) |
 | **USE** (near the central table) | call an emergency meeting |
 | Click a player, then ✔ / **Skip** | vote during a meeting |
 | `F3` | show / hide the network HUD |
@@ -147,7 +154,7 @@ All constants are in [`shared/protocol.cjs`](shared/protocol.cjs), used by both 
 | `TIMEOUT_MS` | 5000 | silence after which the peer is considered gone |
 | `MIN_RTO_MS` / `MAX_RTO_MS` / `INITIAL_RTO_MS` | 100 / 1000 / 200 | UDP retransmission timeout bounds |
 | `MAX_RETRIES` | 25 | UDP: resends without ACK before giving up on the peer |
-| `MAX_DATAGRAM_BYTES` | 1200 | keep datagrams below the MTU (1500 Ethernet, 1280 Tailscale): no IP fragmentation |
+| `MAX_DATAGRAM_BYTES` | 1200 | keep datagrams below the MTU (1500 Ethernet, 1280 Tailscale): no IP fragmentation. To guarantee it, a room holds at most 4 players and the server at most 8 rooms (measured worst case with 16-character names: `room:joined` 1124 bytes, `rooms:list` 974 bytes) |
 | `UNRELIABLE_TYPES` | `player:move`, `player:moved` | UDP messages sent without reliability |
 
 ### 3.2 The TCP version
@@ -242,7 +249,10 @@ headers). The client binds a port chosen by the OS (`bind(0)`).
 4. **De-duplication:** a `seq` already delivered is acknowledged again but not delivered twice.
 5. **In-order delivery:** if `seq 8` arrives before `seq 7`, it waits; when 7 arrives, 7 then 8 are
    delivered.
-6. **Giving up:** after `MAX_RETRIES` (25) resends without an ACK, the peer is considered dead.
+6. **Exponential backoff:** each resend of the same message waits twice as long as the previous one
+   (RTO, 2·RTO, 4·RTO... capped at 1000 ms), like TCP: a stalled network is not hammered every 100 ms.
+7. **Giving up:** after `MAX_RETRIES` (25) resends without an ACK (about 20 s with the backoff), the peer
+   is considered dead. In practice the 5 s heartbeat timeout fires first; this is a second safety net.
 
 ```mermaid
 sequenceDiagram
@@ -271,7 +281,7 @@ packets carry a counter `n`; a position older than the last one received from th
 | Situation | What happens |
 |---|---|
 | Client quits | it sends `BYE`; the server removes it at once |
-| `BYE` lost, process crashed, cable pulled | silence → 5 s timeout (or the retransmission limit, if messages were waiting for an ACK) |
+| `BYE` lost, process crashed, cable pulled | silence → 5 s heartbeat timeout |
 | Server restarted / timed the client out | the server answers the client's next packet with `BYE "unknown session, send HELLO"` |
 | Any disconnection on the client side | the client drops its channel and goes back to sending `HELLO` every second |
 | `HELLO` from an address the server already knows | the client restarted: the server starts a fresh session (sequence numbers back to 1) |
@@ -304,19 +314,23 @@ Client → server (the player is always identified from the session, never from 
 |---|---|---|
 | `player:register` | `{name, password, color}` | `player:registered {playerId, name, color}` + `rooms:list`, or `player:register:error {message}` (`Wrong password` if the account exists and the password does not match). Any `id` in the payload is ignored. |
 | `player:unregister` | `{}` | `player:unregistered` |
-| `rooms:get` | `{}` | `rooms:list {rooms}` |
+| `rooms:get` | `{}` | `rooms:list {rooms: [{id, started, host: {id, name}, playerCount}]}` (the small lobby view) |
 | `room:create` | `{roomId}` | `room:joined`, or `room:join:error {message}` |
 | `room:join` | `{roomId}` | `room:joined {roomId, room, player}`, or `room:join:error {message}` |
 | `room:leave` | `{}` | others get `player:left` |
 | `room:get` | `{}` | `room:state {room, player}` |
-| `game:start` | `{}` (host only) | each player privately gets `game:started {roomId, isImposter}` |
-| `player:move` | `{x, y, d, moving}` | accepted moves: others get `player:moved {id, x, y, d, moving}`. Rejected moves (outside the map, or faster than max speed): the sender alone gets `player:moved` with `corrected: true` and the server's position |
+| `game:start` | `{}` (host only) | each player privately gets `game:started {roomId, isImposter, durationMs, killCooldownMs}` (durations, not clock times: client clocks are not synchronised with the server's) |
+| `player:move` | `{x, y, d, moving}` | accepted moves: others get `player:moved {id, x, y, d, moving}`. Rejected moves (outside the map, faster than max speed, or one jump longer than 0.5 s of walking): the sender alone gets `player:corrected {id, x, y, d, moving}` with the server's position. Unlike `player:moved`, it is reliable in the UDP version: a lost correction would leave the client stuck |
 | `player:kill` | `{playerId}` (victim) | everyone gets `player:killed {playerId, killerId, x, y, color}`, or `game:notif` |
 | `meeting:start` | `{}` | everyone gets `meeting:started {callerId, durationMs, players}` |
 | `meeting:vote` | `{votedForId}` or `'skip'` | everyone gets `meeting:voted {callerId}` (choice hidden), then `meeting:ended {results}` |
 
-Server → clients, unprompted: `rooms:list` (pushed to everyone on every room change), `player:joined`,
-`player:left {playerId, reason}`, `room:host {hostId}`, `game:ended {isImposter, imposterId, imposterName, ranking}`,
+Server → clients, unprompted: `rooms:list` (pushed to everyone on every room change), `room:update {room}`
+(the full room view, only to the players inside it, on every join, leave, start and end; during a game its
+scores are the ones from the start of the game, because live totals would reveal roles), `player:joined`,
+`player:left {playerId, reason}`, `room:host {hostId}`,
+`game:ended {isImposter, reason, imposterId, imposterName, ranking: [{id, name, color, points, left?}]}` where
+`reason` is `imposter-ejected`, `imposter-left`, `crew-eliminated` or `time-up`,
 `game:notif {message}`. The room list never contains the imposter's identity.
 
 ### 3.6 Measured behaviour (from the automated tests, on one PC)
@@ -324,9 +338,9 @@ Server → clients, unprompted: `rooms:list` (pushed to everyone on every room c
 | Situation | TCP | UDP |
 |---|---|---|
 | Window closed normally | ~0.1 s (FIN) | ~0.1 s (BYE); 5 s if the BYE datagram is lost |
-| Client process killed | ~0 s (the OS sends RST) | 2.6–5 s (only silence reveals it) |
+| Client process killed | ~0 s (the OS sends RST) | 5 s (only silence reveals it) |
 | Server killed, seen by the clients | 0.2 s | 5.1 s |
-| Cable pulled (all traffic silently dropped) | 5 s on both sides (heartbeat) | 2.6–5 s |
+| Cable pulled (all traffic silently dropped) | 5 s on both sides (heartbeat) | 5 s on both sides (heartbeat) |
 | Network back | new TCP connection after ≤ 2 s | new `HELLO` → `WELCOME` within 1 s |
 | 20% loss each side | not applicable (`--loss` is UDP only) | game fully playable; HUD shows e.g. `retrans 15 · dup 9 · out-of-order 2` |
 
@@ -491,7 +505,8 @@ node tools/smoke-client.cjs --proto tcp
 node tools/smoke-client.cjs --proto udp
 node tools/smoke-client.cjs --proto udp --loss 0.2
 ```
-It uses ports 5200/5201 (no conflict with a running game). Expected: `ALL 34 CHECKS PASSED`.
+It uses ports 5200/5201 (no conflict with a running game). Expected: `ALL 46 CHECKS PASSED`. The server is started with a 35 s game
+time limit (`GAME_DURATION_MS`) so the time-limit rule is tested too.
 
 ---
 

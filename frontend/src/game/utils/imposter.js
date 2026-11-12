@@ -1,27 +1,31 @@
 import net from "../../services/net.js";
 
+// The server accepts a kill up to 100 px, measured on ITS copy of the positions. The button lights up
+// a little before that (90 px): the server's copy of the target lags what we see by the network delay.
+export const KILL_ZONE_RADIUS = 90;
+
+/** Milliseconds before the next kill is allowed (local estimate; the server decides). */
+export function killCooldownLeft(scene) {
+    return Math.max(0, (scene.killReadyAt || 0) - Date.now());
+}
+
 /**
  * Initialize imposter-specific UI and mechanics
- * Sets up kill button and detection zone for the imposter
+ * Sets up kill button, cooldown counter and detection zone for the imposter
  */
 export function handleImposter(scene) {
-    console.log("Ran handleImposter with", scene.imposter, scene.player);
     if (!scene.imposter || !scene.player) return;
-
-    console.log("Setting up imposter", scene.player, scene.imposter);
-
-    const KILL_ZONE_RADIUS = 60; // pixels
 
     // Kill button click handler
     const handleKill = () => {
         const victim = scene.closest && scene.closest.player;
-        if (!victim) return;
+        // The button is grey in these cases: don't send a request the server would refuse.
+        if (!victim || killCooldownLeft(scene) > 0) return;
 
         // Only a REQUEST: "I want to kill this player". The server knows the killer from our
         // connection, and checks role, distance (with its own positions) and cooldown. If it agrees,
         // everybody gets player:killed (and we jump onto the body then); if not, we get a
         // game:notif refusal, shown as a toast by App.jsx.
-        console.log('Emitting player:kill', victim.id);
         net.emit('player:kill', { playerId: victim.id });
 
         // Reset closest player tracking
@@ -36,7 +40,16 @@ export function handleImposter(scene) {
         .setInteractive()
         .on('pointerdown', handleKill);
     scene.ui.add(scene.killBtn);
-    console.log("Kill button created", scene.killBtn);
+
+    // Seconds left before the next kill, drawn over the button.
+    scene.killCooldownText = scene.add.text(820, 410, '', {
+        fontFamily: 'Arial Black, Arial',
+        fontSize: '44px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 6,
+    }).setOrigin(0.5).setDepth(1001).setScrollFactor(0);
+    scene.ui.add(scene.killCooldownText);
 
     // Create invisible detection zone around imposter
     scene.zone = scene.physics.add.sprite(scene.player.x, scene.player.y, 100, 100);
@@ -54,14 +67,17 @@ export function handleImposterMovement(scene) {
         handleNearestPlayer(scene);
     }
 
-    // Update kill button visual state based on whether a target is in range
-    if (scene.killBtn) {
-        if (!scene.closest.player && scene.killBtn.pipeline?.name !== 'GrayScale') {
-            scene.killBtn.setPipeline('GrayScale');
-        } else if (scene.closest.player && scene.killBtn.pipeline?.name === 'GrayScale') {
-            scene.killBtn.resetPipeline();
-        }
+    if (!scene.killBtn) return;
+    const cooldown = killCooldownLeft(scene);
+    if (scene.killCooldownText) {
+        scene.killCooldownText.setText(cooldown > 0 ? String(Math.ceil(cooldown / 1000)) : '');
     }
+
+    // Grey while no target is in range or the cooldown is running
+    const ready = Boolean(scene.closest.player) && cooldown === 0;
+    const isGrey = scene.killBtn.pipeline?.name === 'GrayScale';
+    if (!ready && !isGrey) scene.killBtn.setPipeline('GrayScale');
+    else if (ready && isGrey) scene.killBtn.resetPipeline();
 }
 
 /**
@@ -69,8 +85,6 @@ export function handleImposterMovement(scene) {
  * Updates scene.closest with the nearest valid target
  */
 export function handleNearestPlayer(scene) {
-    const KILL_ZONE_RADIUS = 60; // pixels
-
     Object.values(scene.players).forEach(p => {
         // Dead or removed players are not targets (the server would refuse the kill anyway).
         if (!p.alive || !p.active) {
@@ -83,16 +97,12 @@ export function handleNearestPlayer(scene) {
         if (dist > KILL_ZONE_RADIUS) {
             if (p === scene.closest.player) {
                 scene.closest = { player: null, distance: KILL_ZONE_RADIUS };
-                console.log("No closest player");
             }
             return;
         }
 
         // Found closer player (excluding self)
         if (dist < scene.closest.distance && p !== scene.player) {
-            if (scene.closest.player !== p) {
-                console.log("New closest player:", scene.closest);
-            }
             scene.closest = { player: p, distance: dist };
         }
     });

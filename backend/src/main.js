@@ -24,7 +24,7 @@
 import { startTcpServer } from './transport/tcpServer.js';
 import { startUdpServer } from './transport/udpServer.js';
 import protocol from '../../shared/protocol.cjs';
-import { RoomsManager, publicRoom } from './managers/rooms.manager.js';
+import { RoomsManager, publicRoom, lobbyRoom } from './managers/rooms.manager.js';
 import { PlayersManager } from './managers/players.manager.js';
 import { roomHandlers, handleSessionGone } from './events/roomEvents.js';
 import { gameHandlers } from './events/gameEvents.js';
@@ -134,8 +134,14 @@ const ctx = {
         for (const sessionId of connectedSessions) transport.send(sessionId, type, data);
     },
     // The lobby list is pushed to everybody whenever any room changes (no polling, no HTTP).
+    // It holds only what the list shows (lobbyRoom), so it stays one small UDP datagram.
     broadcastRooms() {
-        ctx.sendToEveryone('rooms:list', { rooms: RoomsManager.fetchRooms().map(publicRoom) });
+        ctx.sendToEveryone('rooms:list', { rooms: RoomsManager.fetchRooms().map(lobbyRoom) });
+    },
+    // The full view of one room (players, host, scores) goes only to the players inside it.
+    sendRoomUpdate(roomId) {
+        const room = RoomsManager.fetchRoom(roomId);
+        if (room) ctx.sendToRoom(roomId, 'room:update', { room: publicRoom(room) });
     },
 };
 

@@ -24,10 +24,23 @@
     '<rect class="lg lg2" x="56" y="76" width="22" height="38" rx="9"/>' +
     '<rect class="pack" x="4" y="42" width="28" height="44" rx="10"/>' +
     '<rect class="body" x="20" y="8" width="62" height="88" rx="31"/>' +
+    '<rect class="sheen" x="20" y="8" width="62" height="88" rx="31" fill="url(#crewShade)"/>' +
     '<rect class="visor" x="44" y="26" width="48" height="30" rx="15"/>' +
     '<rect class="shine" x="58" y="32" width="22" height="7" rx="3.5"/></g></svg>';
   const fillCrew = (root) => $$('.crew', root).forEach(el => { if (!el.firstChild) el.innerHTML = CREW; });
   fillCrew(document);
+
+  // ---------------------------------------------------------------- voxel crewmates (title slide)
+  // Pixel art drawn with box-shadows: X = body, V = visor. The 3D depth comes from CSS drop-shadows.
+  const VOXEL = ['..XXXXXX..', '.XXXXXXXX.', '.XXXVVVVV.', 'XXXXVVVVVV', 'XXXXVVVVV.', 'XXXXXXXXX.',
+    'XXXXXXXXX.', 'XXXXXXXXX.', '.XXXXXXXX.', '.XXX..XXX.', '.XXX..XXX.'];
+  $$('.voxel').forEach(el => {
+    const s = 22, out = [];
+    VOXEL.forEach((row, y) => [...row].forEach((ch, x) => {
+      if (ch !== '.') out.push(`${x * s}px ${y * s}px 0 0 ${ch === 'V' ? '#fff6b8' : '#ffd91a'}`);
+    }));
+    el.style.setProperty('--px', out.join(','));
+  });
 
   // ---------------------------------------------------------------- fit 1920x1080 to the window
   function fit() {

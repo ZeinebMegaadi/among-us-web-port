@@ -282,13 +282,15 @@ export class BaseGameScene extends Scene {
             this.removePlayer(data.playerId);
         };
 
-        // Another player's position. Our own position comes back only when the server
-        // rejected a move (too fast, or outside the map): snap to the position it kept.
+        // The server rejected one of our moves (too fast, or outside the map): snap to the
+        // position it kept. Sent reliably in the UDP version (unlike positions).
+        this._onPlayerCorrected = (data) => {
+            if (data.id === this.playerObj?.id && this.player) this.setSpritePosition(this.player, data.x, data.y);
+        };
+
+        // Another player's position (the server never sends us our own).
         this._onPlayerMoved = (data) => {
-            if (data.id === this.playerObj?.id) {
-                if (data.corrected && this.player) this.setSpritePosition(this.player, data.x, data.y);
-                return;
-            }
+            if (data.id === this.playerObj?.id) return;
             if (!this.players) return;
             const player = this.players[data.id];
             if (!player || !player.alive || !player.active) return;
@@ -311,6 +313,7 @@ export class BaseGameScene extends Scene {
         net.on('player:joined', this._onPlayerJoined);
         net.on('player:left', this._onPlayerLeft);
         net.on('player:moved', this._onPlayerMoved);
+        net.on('player:corrected', this._onPlayerCorrected);
 
         this._netListenersAdded = true;
     }
@@ -324,11 +327,13 @@ export class BaseGameScene extends Scene {
         if (this._onPlayerJoined) net.off('player:joined', this._onPlayerJoined);
         if (this._onPlayerLeft) net.off('player:left', this._onPlayerLeft);
         if (this._onPlayerMoved) net.off('player:moved', this._onPlayerMoved);
+        if (this._onPlayerCorrected) net.off('player:corrected', this._onPlayerCorrected);
 
         // clear refs
         this._onPlayerJoined = null;
         this._onPlayerLeft = null;
         this._onPlayerMoved = null;
+        this._onPlayerCorrected = null;
         this._netListenersAdded = false;
     }
 
@@ -351,6 +356,9 @@ export class BaseGameScene extends Scene {
         this.spawnPositions = {};
         // Track spawn positions for each player
         const uiCam = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+        // World objects created outside worldContainer (dead bodies) must call this.uiCam.ignore(),
+        // or this un-zoomed camera draws them a second time at the wrong place.
+        this.uiCam = uiCam;
         uiCam.setScroll(0, 0);
         uiCam.setZoom(1);
         uiCam.ignore(this.worldContainer);
@@ -402,12 +410,10 @@ export class BaseGameScene extends Scene {
             vy *= 0.707;
         }
 
-        // Local Player Movement
-        if (this.player.alive) {
-            this.player.body.setVelocity(vx, vy);
-            if (vx < 0) this.player.flipX = true;
-            else if (vx > 0) this.player.flipX = false;
-        }
+        // Local Player Movement (a dead player keeps walking, as a ghost only they can see)
+        this.player.body.setVelocity(vx, vy);
+        if (vx < 0) this.player.flipX = true;
+        else if (vx > 0) this.player.flipX = false;
 
 
         const isMoving = vx !== 0 || vy !== 0;

@@ -7,12 +7,16 @@
 // "playerId" / "hostId" a client puts in its payload is ignored, so a client cannot pretend to be
 // somebody else (the original version trusted those fields).
 
-import { RoomsManager, publicRoom } from '../managers/rooms.manager.js';
+import { RoomsManager, publicRoom, lobbyRoom } from '../managers/rooms.manager.js';
 import { PlayersManager } from '../managers/players.manager.js';
 import { Accounts } from '../managers/accounts.manager.js';
 import { afterPlayerLeftGame } from './gameEvents.js';
 
-const MAX_PLAYERS_PER_ROOM = 10;
+// Both limits keep every message one UDP datagram under MAX_DATAGRAM_BYTES (1200), so IP never
+// fragments it. Measured worst case (16-character names): room:joined is 1124 bytes with 4 players
+// and 1310 with 5; rooms:list is 974 bytes with 8 rooms. The game itself needs 3 players.
+const MAX_PLAYERS_PER_ROOM = 4;
+const MAX_ROOMS = 8;
 const MAX_NAME_LENGTH = 16;
 const MIN_PASSWORD_LENGTH = 4;
 const MAX_PASSWORD_LENGTH = 64;
@@ -30,7 +34,7 @@ function publicPlayer(p) {
 }
 
 function sendRoomsList(ctx, sessionId) {
-    ctx.sendTo(sessionId, 'rooms:list', { rooms: RoomsManager.fetchRooms().map(publicRoom) });
+    ctx.sendTo(sessionId, 'rooms:list', { rooms: RoomsManager.fetchRooms().map(lobbyRoom) });
 }
 
 function joinError(ctx, sessionId, message) {
@@ -70,6 +74,7 @@ export function removeFromRoom(ctx, player, reason) {
     if (!deleted) {
         ctx.sendToRoom(roomId, 'player:left', { playerId: player.id, reason });
         if (hostChanged) ctx.sendToRoom(roomId, 'room:host', { hostId: room.host.id });
+        ctx.sendRoomUpdate(roomId);
         // During a game, a leaver can end it (imposter left = crew wins; last crewmate left =
         // imposter wins) or finish a meeting (they were the last one still to vote).
         if (room.started) afterPlayerLeftGame(ctx, roomId);
@@ -170,6 +175,9 @@ function roomCreate(ctx, sessionId, data) {
         return joinError(ctx, sessionId, 'Invalid room code');
     }
     if (RoomsManager.fetchRoom(data.roomId)) return joinError(ctx, sessionId, 'This room code already exists');
+    if (RoomsManager.fetchRooms().length >= MAX_ROOMS) {
+        return joinError(ctx, sessionId, `The server already has ${MAX_ROOMS} rooms: join one of them`);
+    }
 
     if (player.roomId) removeFromRoom(ctx, player, 'left');
     RoomsManager.createRoom(data.roomId, player);
@@ -206,6 +214,7 @@ function roomJoin(ctx, sessionId, data) {
 
     ctx.sendTo(sessionId, 'room:joined', { roomId: room.id, room: publicRoom(room), player: publicPlayer(player) });
     ctx.sendToRoom(room.id, 'player:joined', { roomId: room.id, player: publicPlayer(player) }, player.id);
+    ctx.sendRoomUpdate(room.id);
     ctx.broadcastRooms();
 }
 

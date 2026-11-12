@@ -1,6 +1,6 @@
 {
-    "name": "template-react",
-    "description": "A Phaser 3 project template that demonstrates React communication and uses Vite for bundling.",
+    "name": "among-us-arena-client",
+    "description": "Among Us Arena client: React + Phaser UI in Electron, raw TCP (net) or UDP (dgram) socket in the main process.",
     "version": "1.2.0",
     "type": "module",
     "repository": {

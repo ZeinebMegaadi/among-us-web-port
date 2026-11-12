@@ -1,6 +1,18 @@
 import {PlayersManager} from "./players.manager.js";
 
 export const SPAWN = {x: 560, y: 150};
+// Players stand side by side around SPAWN instead of on the same pixel (where they hid each other).
+const SPAWN_OFFSETS = [{x: 0, y: 0}, {x: -1, y: 0}, {x: 1, y: 0}, {x: 0, y: 1}];
+// The waiting lobby draws sprites 3 times bigger than the game map, so they need more room there.
+export const GAME_SPACING_PX = 25;
+export const LOBBY_SPACING_PX = 60;
+
+/** Spawn point of one player, from their place in the room's join order. */
+export function spawnFor(room, playerId, spacing = GAME_SPACING_PX) {
+    const i = Math.max(0, Object.keys(room.players).indexOf(playerId));
+    const o = SPAWN_OFFSETS[i % SPAWN_OFFSETS.length];
+    return {x: SPAWN.x + o.x * spacing, y: SPAWN.y + o.y * spacing};
+}
 
 /**
  * @type {{[key: string]: import('../types/room.type.js').GameRoom}}
@@ -19,6 +31,8 @@ export const RoomsManager = {
             player = PlayersManager.setRoomId(player.id, roomId);
             room.players[player.id] = player;
             if (room.scores[player.id] === undefined) room.scores[player.id] = 0;
+            PlayersManager.updatePlayerState(player.id, {...spawnFor(room, player.id, LOBBY_SPACING_PX), d: 'left', moving: false});
+            player._moveAt = null;   // server-side teleport: restart the movement budget
             return player;
         },
         /**
@@ -27,11 +41,20 @@ export const RoomsManager = {
         remove(roomId, player) {
             const room = rooms[roomId];
             if (!room) return {deleted: false, hostChanged: false};
+            // Leaving (or crashing) during a game does not erase what you scored in it: the final
+            // ranking of this game still lists you, marked as "left".
+            if (room.started) {
+                room.leftPlayers[player.id] = {
+                    id: player.id, name: player.name, color: player.color,
+                    points: room.scores[player.id] || 0, left: true,
+                };
+            }
             delete room.players[player.id];
             delete room.scores[player.id];
             const remaining = Object.values(room.players);
             if (remaining.length < 1) {
                 if (room.currentMeeting?.timer) clearTimeout(room.currentMeeting.timer);
+                if (room.endTimer) clearTimeout(room.endTimer);
                 delete rooms[roomId];
                 return {deleted: true, hostChanged: false};
             }
@@ -110,6 +133,9 @@ export const RoomsManager = {
             lastKillAt: 0,
             emergencyUsed: {},     // playerId -> true once they pressed the meeting button this game
             gameNumber: 0,
+            scoresAtStart: {},     // what clients may see during a game (live scores would reveal roles)
+            leftPlayers: {},       // playerId -> final line for players who left during the current game
+            endTimer: null,        // server-side game time limit
         };
         return rooms[roomId];
     },
@@ -132,9 +158,13 @@ export const RoomsManager = {
         room.gameNumber++;
         room.lastKillAt = Date.now(); // the imposter has to wait one cooldown before the first kill
         room.emergencyUsed = {};
+        room.scoresAtStart = {...room.scores};
+        room.leftPlayers = {};
         players.forEach(p => {
             p.isAlive = true;
-            PlayersManager.updatePlayerState(p.id, {...SPAWN, d: 'left', moving: false});
+            // Kept for the whole game: players return here after each meeting, even if someone left.
+            p.spawn = spawnFor(room, p.id);
+            PlayersManager.updatePlayerState(p.id, {...p.spawn, d: 'left', moving: false});
         });
 
         // Rotate the imposter role: pick among players who have not been imposter yet.
@@ -154,12 +184,16 @@ export const RoomsManager = {
         const room = rooms[roomId];
         if (!room) return;
         if (room.currentMeeting?.timer) clearTimeout(room.currentMeeting.timer);
+        if (room.endTimer) clearTimeout(room.endTimer);
+        room.endTimer = null;
         room.started = false;
         room.imposter = null;
         room.currentMeeting = null;
+        room.leftPlayers = {};
         Object.values(room.players).forEach(p => {
             p.isAlive = true;
-            PlayersManager.updatePlayerState(p.id, {...SPAWN, d: 'left', moving: false});
+            p._moveAt = null;
+            PlayersManager.updatePlayerState(p.id, {...spawnFor(room, p.id, LOBBY_SPACING_PX), d: 'left', moving: false});
         });
     },
 
@@ -185,19 +219,38 @@ export const RoomsManager = {
 };
 
 /**
- * What clients are allowed to see about a room. NEVER includes who the imposter is
+ * What the players IN a room may see about it. NEVER includes who the imposter is
  * (the original project sent the imposter's id to everybody).
+ * During a game the scores are frozen at their value when the game started: a live total would
+ * reveal roles (the imposter gains a point per kill, a crewmate a point for voting the imposter).
  */
 export function publicRoom(room) {
     const players = {};
     for (const p of Object.values(room.players)) {
         players[p.id] = {id: p.id, name: p.name, color: p.color, isAlive: p.isAlive, state: p.state};
     }
+    const source = room.started ? room.scoresAtStart : room.scores;
+    const scores = {};
+    for (const id of Object.keys(players)) scores[id] = source[id] || 0;
     return {
         id: room.id,
         started: room.started,
         host: {id: room.host.id, name: room.host.name},
         players,
-        scores: {...room.scores},
+        scores,
+    };
+}
+
+/**
+ * What EVERY connected client sees in the lobby list: only what the list displays.
+ * The list is pushed to everyone on every change, so in the UDP version it must stay one small
+ * datagram whatever the number of players (full player objects made it grow past the MTU).
+ */
+export function lobbyRoom(room) {
+    return {
+        id: room.id,
+        started: room.started,
+        host: {id: room.host.id, name: room.host.name},
+        playerCount: Object.keys(room.players).length,
     };
 }

@@ -9,8 +9,8 @@ import net from '../services/net.js';
 
 const style = {
   position: 'fixed',
-  top: 52,            // just below the "Leave" button, which sits in the top-left corner
-  left: 10,
+  bottom: 8,          // bottom-right: the corners above hold the Back/Leave button and the scoreboard
+  right: 10,
   zIndex: 20000,
   padding: '4px 8px',
   background: 'rgba(0, 0, 0, 0.65)',
@@ -19,6 +19,7 @@ const style = {
   borderRadius: 4,
   pointerEvents: 'none',
   whiteSpace: 'nowrap',
+  textAlign: 'right',
 };
 
 export default function NetHud() {
@@ -46,22 +47,29 @@ export default function NetHud() {
 
   if (!visible || !status) return null;
 
-  const parts = [
+  // Two short lines (connection, then traffic) so the HUD stays clear of the centred buttons.
+  const line1 = [
     `${status.proto.toUpperCase()} → ${status.server}:${status.port}`,
     status.state,
   ];
+  const line2 = [];
   if (stats) {
-    parts.push(`RTT ${stats.rttMs ?? '–'} ms`);
-    parts.push(`↑${stats.perSecond.msgsOut} ↓${stats.perSecond.msgsIn} msg/s`);
+    line1.push(`RTT ${stats.rttMs ?? '–'} ms`);
+    line2.push(`↑${stats.perSecond.msgsOut} ↓${stats.perSecond.msgsIn} msg/s`);
     if (stats.proto === 'udp') {
-      parts.push(`retrans ${stats.retransmits}`);
-      parts.push(`dup ${stats.duplicatesIgnored}`);
-      parts.push(`out-of-order ${stats.outOfOrderBuffered}`);
-      if (stats.simulatedLoss) parts.push(`sim. loss ${stats.simulatedLoss}`);
+      line2.push(`retrans ${stats.retransmits}`);
+      line2.push(`dup ${stats.duplicatesIgnored}`);
+      line2.push(`out-of-order ${stats.outOfOrderBuffered}`);
+      if (stats.simulatedLoss) line2.push(`sim. loss ${stats.simulatedLoss}`);
     } else {
-      parts.push('reliability: OS TCP stack');
+      line2.push('reliability: OS TCP stack');
     }
   }
   const color = status.state === 'connected' ? style.color : '#ff7070';
-  return <div style={{...style, color}} title="Network HUD (F3)">{parts.join(' · ')}</div>;
+  return (
+    <div style={{...style, color}} title="Network HUD (F3)">
+      <div>{line1.join(' · ')}</div>
+      {line2.length > 0 && <div>{line2.join(' · ')}</div>}
+    </div>
+  );
 }

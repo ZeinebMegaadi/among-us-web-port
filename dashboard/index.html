@@ -8,45 +8,44 @@
 </head>
 <body>
 <canvas id="stars" aria-hidden="true"></canvas>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="crewShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".42"/></linearGradient></defs></svg>
 
 <main class="stage" id="stage">
 
 <!-- ================= 1. TITLE ================= -->
 <section class="slide s1" data-steps="0" data-hud="TCP :5000 · UDP :5001 · Node net + dgram only">
-  <div class="inner">
-    <p class="kicker">Computer Networks · Project 2 · 13 Nov 2026</p>
-    <h1 class="brand">AmongUs</h1>
-    <p class="tagline">One game. Two transports.</p>
-    <p class="sub">Built twice on raw sockets: once <b class="t">TCP only</b>, once <b class="u">UDP only</b>.</p>
+  <div class="inner arcade">
+    <div class="rays" aria-hidden="true"></div>
+    <p class="strip"><i class="pxdots"></i><span>ONE GAME · TWO TRANSPORTS</span><i class="pxdots"></i>
+      <span class="minis"><i class="crew mini" style="--c:#ffd23c;--w:26px"></i><i class="crew mini" style="--c:#ff4d4d;--w:26px"></i><i class="crew mini" style="--c:#38fedc;--w:26px"></i><i class="crew mini" style="--c:#ff8ad8;--w:26px"></i></span></p>
 
-    <div class="s1-lanes">
-      <div class="lane glass tcp">
-        <span class="num" aria-hidden="true">5000</span>
-        <p class="tag"><b>TCP</b> · net · one ordered stream</p>
-        <div class="pipe"></div>
-        <div class="file">
-          <div class="carry"><code class="cap">seq 3</code><i class="crew walk" style="--c:var(--tcp)"></i></div>
-          <div class="carry"><code class="cap">seq 2</code><i class="crew walk" style="--c:var(--tcp)"></i></div>
-          <div class="carry"><code class="cap">seq 1</code><i class="crew walk" style="--c:var(--tcp)"></i></div>
-        </div>
-      </div>
-      <div class="lane glass udp">
-        <span class="num" aria-hidden="true">5001</span>
-        <p class="tag"><b>UDP</b> · dgram · independent datagrams</p>
-        <div class="run r1"><code class="cap">n 41</code><i class="crew walk" style="--c:var(--udp)"></i></div>
-        <div class="run r2"><code class="cap">n 42</code><i class="crew walk" style="--c:var(--udp)"></i></div>
-        <div class="run r3"><code class="cap">n 43</code><i class="crew walk" style="--c:var(--udp)"></i></div>
-        <p class="ejnote">n 42 was ejected.</p>
-      </div>
+    <div class="neon tcp"><b>TCP</b><span>ONLY</span><small>net · port 5000</small></div>
+    <div class="neon udp"><b>UDP</b><span>ONLY</span><small>dgram · port 5001</small></div>
+
+    <div class="cab">
+      <div class="side l"></div><div class="side r"></div>
+      <div class="marquee"><h1>AmongUs</h1></div>
+      <div class="hood"></div>
+      <div class="bezel"><div class="crt">
+        <p class="l1"><i class="coin"></i>TCP VS UDP<i class="coin"></i></p>
+        <p class="big">SOCKET<br>WARS</p>
+        <p class="l3"><i class="coin"></i>CS411 · 13 NOV 2026<i class="coin"></i></p>
+        <i class="scan"></i>
+      </div></div>
+      <div class="panel"><div class="ctl"><i class="stick"></i><i class="btn r"></i><i class="btn y"></i><i class="btn b"></i><i class="btn r2"></i><i class="btn y2"></i><i class="btn b2"></i></div><div class="ctl"><i class="stick"></i><i class="btn r"></i><i class="btn y"></i><i class="btn b"></i><i class="btn r2"></i><i class="btn y2"></i><i class="btn b2"></i></div></div>
+      <div class="front"><div class="coinslot"><i></i><span>INSERT</span></div><div class="price">PRESS<br>→</div></div>
     </div>
 
-    <div class="s1-foot">
-      <div class="chips">
-        <span class="chip">Node net + dgram only</span>
-        <span class="chip">0 backend dependencies</span>
-        <span class="chip">1 server + 3 clients · 4 computers</span>
-      </div>
-      <p class="team"><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Member 1</span> · <span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Member 2</span> · <span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Member 3</span> · <span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Member 4</span></p>
+    <i class="voxel vl" aria-hidden="true"></i><i class="voxel vr" aria-hidden="true"></i>
+
+    <i class="crew fl f1" style="--c:#ff5a3c;--w:104px"></i><i class="crew fl f2" style="--c:#2f7bff;--w:74px"></i><i class="crew fl f3" style="--c:#52e05a;--w:66px"></i><i class="crew fl f4" style="--c:#ff3b4e;--w:52px"></i><i class="crew fl f5" style="--c:#ff6fc8;--w:92px"></i><i class="crew fl f6" style="--c:#ff3b4e;--w:54px"></i>
+    <i class="crew bigc bl" style="--c:#35d47c;--w:520px"></i><i class="crew bigc br" style="--c:#3fe6ff;--w:230px"></i>
+
+    <div class="info">
+      <span class="chip">net + dgram only</span>
+      <span class="chip">0 dependencies</span>
+      <span class="chip">1 server + 3 clients</span>
+      <p class="team"><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Member 1</span><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Member 2</span><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Member 3</span><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Member 4</span></p>
     </div>
   </div>
   <p class="say" hidden>Good morning. We are four, and this is Among Us Arena: a competitive game for three players, one imposter against two crewmates, where every player has a personal score. We built it twice with the same rules: once on TCP only, once on UDP only, using nothing but Node's net and dgram modules. Everything we show today is either what each protocol gave us for free, or what we had to build ourselves.</p>

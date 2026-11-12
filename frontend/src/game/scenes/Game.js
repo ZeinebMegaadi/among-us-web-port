@@ -3,7 +3,7 @@ import { GrayPipeline, VisionRadiusPipeline } from "../shaders/fragShader.js";
 import net from '../../services/net.js';
 import { setPlayerColor } from "../utils/playerFactory.js";
 import {EventBus} from "../EventBus.js";
-import { handleImposter, handleImposterMovement } from "../utils/imposter.js";
+import { handleImposter, handleImposterMovement, KILL_ZONE_RADIUS } from "../utils/imposter.js";
 import { setupVisionSystem, disableVisionSystem, updateVisionSystem, enableVisionSystem} from "../utils/vision.js";
 
 export class Game extends BaseGameScene {
@@ -22,6 +22,10 @@ export class Game extends BaseGameScene {
         // TODO: Refactor to use player.isImposter instead of promise pattern
         console.log('Game scene init with data:', data);
         this.imposterProm = data.isImposter;
+        // From game:started. The server applies the cooldown from the start of the game too.
+        this.killCooldownMs = data.killCooldownMs ?? 10000;
+        this.killReadyAt = Date.now() + this.killCooldownMs;
+        this.meetingUsed = false;   // one emergency meeting per player per game
     }
 
     /**
@@ -54,7 +58,18 @@ export class Game extends BaseGameScene {
             .on('pointerdown', () => {
                 this.startMeeting();
             });
+        // Shown only near the table (see update()).
+        this.meetingBtn.visible = false;
         this.ui.add(this.meetingBtn);
+    }
+
+    /** Grey USE button when we cannot call a meeting any more (dead, or already used this game). */
+    updateMeetingButton() {
+        if (!this.meetingBtn) return;
+        const usable = this.player?.alive && !this.meetingUsed;
+        const isGrey = this.meetingBtn.pipeline?.name === 'GrayScale';
+        if (!usable && !isGrey) this.meetingBtn.setPipeline('GrayScale');
+        else if (usable && isGrey) this.meetingBtn.resetPipeline();
     }
 
     // ====== PHASER LIFECYCLE METHODS ======
@@ -86,7 +101,7 @@ export class Game extends BaseGameScene {
         this.game.renderer.pipelines.add('GrayScale', new GrayPipeline(this.game));
         this.game.renderer.pipelines.add('VisionRadius', new VisionRadiusPipeline(this.game));
 
-        this.closest = { player: null, distance: 60 };
+        this.closest = { player: null, distance: KILL_ZONE_RADIUS };
 
         this.VISION_RADIUS = 100;
         this.visionEnabled = true;
@@ -122,6 +137,8 @@ export class Game extends BaseGameScene {
             updateVisionSystem(this);
         }
 
+        if (!this.meetingZone) return;   // set up once the role is known (create)
+        this.updateMeetingButton();
         if (this.physics.overlap(this.player, this.meetingZone)) {
             if (!this.isInMeetingZone) {
                 this.isInMeetingZone = true;
@@ -197,9 +214,17 @@ export class Game extends BaseGameScene {
                 if (killerSprite && killerSprite !== killedPlayer) {
                     this.setSpritePosition(killerSprite, data.x, data.y);
                 }
+                // We are the killer: the server restarted the cooldown when it accepted the kill.
+                if (killerId === String(localId)) this.killReadyAt = Date.now() + this.killCooldownMs;
             }
 
-            if (killedPlayer) {
+            if (killedPlayer === this.player) {
+                // We died: we stay on the map as a ghost that only we can see. We can still walk
+                // around and watch; the server keeps our moves to itself and refuses our meetings/votes.
+                this.player.alive = false;
+                this.player.setAlpha(0.4);
+                window.showToast?.('You were killed. You are now a ghost.', 'error', 4000);
+            } else if (killedPlayer) {
                 killedPlayer.alive = false;
                 if (killedPlayer.destroy) killedPlayer.destroy();
             }
@@ -208,18 +233,22 @@ export class Game extends BaseGameScene {
             const deathAnim = this.add.sprite(data.x, data.y, 'death', 'Dead0001.png')
                 .setScale(0.125)
                 .setDepth(600);
+            this.uiCam?.ignore(deathAnim);   // world object: only the game camera draws it
             setPlayerColor(this, deathAnim, data.color);
             deathAnim.anims.play('deathAnim');
             deathAnim.on('animationcomplete', () => {
-                this.add.sprite(deathAnim.x, deathAnim.y, 'deadBody')
+                const body = this.add.sprite(deathAnim.x, deathAnim.y, 'deadBody')
                     .setScale(0.125)
                     .setDepth(500);
+                this.uiCam?.ignore(body);
+                setPlayerColor(this, body, data.color);   // the body keeps the victim's color
                 deathAnim.destroy();
             });
         };
 
         this.onMeetingStarted = (data) => {
             console.log("Meeting started event received:", data);
+            if (data.callerId === this.playerObj?.id) this.meetingUsed = true;
             this.meetingActive = true;
             this.physics.pause(); // Pause physics
             disableVisionSystem(this);
@@ -243,9 +272,10 @@ export class Game extends BaseGameScene {
             enableVisionSystem(this);
             this.teleportPlayersToSpawn();
 
-            const ejectedId = data.results?.ejectedId;
+            const results = data.results || {};
+            const nameOf = (id) => (id === 'skip' ? 'skip' : this.room?.players?.[id]?.name || 'a player');
+            const ejectedId = results.ejectedId;
             if (ejectedId) {
-                const name = this.room?.players?.[ejectedId]?.name || 'A player';
                 if (ejectedId === this.playerObj?.id) {
                     // We were voted out: we stay on the map as a ghost.
                     if (this.player) {
@@ -255,9 +285,17 @@ export class Game extends BaseGameScene {
                 } else {
                     this.removePlayer(ejectedId);
                 }
-                window.showToast?.(`${name} was ejected`, 'info', 3000);
+                const n = results.counts?.[ejectedId] || 0;
+                window.showToast?.(`${nameOf(ejectedId)} was ejected (${n} vote${n === 1 ? '' : 's'})`, 'info', 4000);
+            } else if (results.tie && Object.keys(results.counts || {}).length > 0) {
+                window.showToast?.('Tie vote: nobody was ejected', 'info', 4000);
             } else {
-                window.showToast?.('Nobody was ejected', 'info', 3000);
+                window.showToast?.('Nobody was ejected (skipped)', 'info', 4000);
+            }
+            // The votes are revealed once the meeting is over (hidden while it runs).
+            const votes = Object.entries(results.votes || {});
+            if (votes.length > 0) {
+                window.showToast?.('Votes: ' + votes.map(([voter, target]) => `${nameOf(voter)} → ${nameOf(target)}`).join(', '), 'info', 6000);
             }
 
             // Recieved by react

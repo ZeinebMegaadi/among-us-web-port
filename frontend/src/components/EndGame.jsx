@@ -6,6 +6,14 @@ import Button from './Button';
  *   {roomId, isImposter (true = the imposter won), imposterId, imposterName, ranking: [{id, name, color, points}]}
  * Scores are kept in the room across games, so the ranking is the running total.
  */
+// Why the game ended (game:ended.reason, decided by the server).
+const REASONS = {
+    'imposter-ejected': 'The imposter was voted out',
+    'imposter-left': 'The imposter left the game',
+    'crew-eliminated': 'No crewmate is left',
+    'time-up': 'Time is up: the crew survived',
+};
+
 export default function EndGame({ result, localPlayerId, onPlayAgain, onBackToMenu, isLocalPlayerImposter }) {
     const isImposterWin = result?.isImposter;
     // If local player is imposter, and imposter wins, it's a victory
@@ -21,6 +29,9 @@ export default function EndGame({ result, localPlayerId, onPlayAgain, onBackToMe
                     <p className={styles.winnerMessage}>
                         {isImposterWin ? 'Imposter Won' : 'Crewmates Won'}
                     </p>
+                    {REASONS[result?.reason] && (
+                        <p className={styles.imposterReveal}>{REASONS[result.reason]}</p>
+                    )}
                     {result?.imposterName && (
                         <p className={styles.imposterReveal}>The imposter was {result.imposterName}</p>
                     )}
@@ -49,7 +60,7 @@ export default function EndGame({ result, localPlayerId, onPlayAgain, onBackToMe
                                 <tr key={p.id} className={p.id === localPlayerId ? styles.me : undefined}>
                                     <td>{i + 1}</td>
                                     <td><span className={styles.colorDot} style={{backgroundColor: p.color}}/></td>
-                                    <td>{p.name}{p.id === result.imposterId ? ' (imposter)' : ''}</td>
+                                    <td>{p.name}{p.id === result.imposterId ? ' (imposter)' : ''}{p.left ? ' (left)' : ''}</td>
                                     <td>{p.points}</td>
                                 </tr>
                             ))}

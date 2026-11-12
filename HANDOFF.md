@@ -13,6 +13,7 @@ This file carries over the decisions from an earlier planning session. Read it f
 - **Grading is on our understanding of networking and sockets.** Keep the network code simple, readable,
   commented, and built only on Node's `net` and `dgram`. No networking libraries.
 
+
 ## Decisions already made
 1. **One repo, both versions.** Same game code; only the transport files differ. Launched with `--proto tcp|udp`.
 2. **Remove Socket.IO, Express, CORS, dotenv, every `fetch`, the Vite proxy, `frontend/log.js`.** All of it runs over

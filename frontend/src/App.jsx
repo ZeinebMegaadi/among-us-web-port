@@ -7,6 +7,7 @@ import Button from "./components/Button.jsx";
 import Meeting from "./components/Meeting.jsx";
 import EndGame from "./components/EndGame.jsx";
 import NetHud from "./components/NetHud.jsx";
+import RoomPanel from "./components/RoomPanel.jsx";
 import {EventBus} from './game/EventBus';
 import RoleIndicator from "./components/RoleIndicator.jsx";
 import { ToastContainer } from "./components/Toast.jsx";
@@ -33,6 +34,8 @@ function App() {
   const [isLocalPlayerHost, setIsLocalPlayerHost] = useState(false);
   const LocalImposterRef = useRef(false); // TODO remove unwanted states with ref
   const [roleIndicator, setRoleIndicator] = useState(false);
+  // Local time at which the game's time limit runs out (from the duration in game:started).
+  const [gameEndsAt, setGameEndsAt] = useState(null);
   // The connection lives in Electron's main process; we only remember whether it dropped.
   const lostConnectionRef = useRef(false);
   // A game:started that arrived while the waiting-lobby scene was not running yet (e.g. we were
@@ -70,6 +73,7 @@ function App() {
       setGameResult(null);
       setMeetingActive(false);
       setMeetingData(null);
+      setGameEndsAt(data.durationMs ? Date.now() + data.durationMs : null);
       setCurrentPage(PAGES.GAME);
       if (lobbyIsRunning()) startLobbyScene(start);
       else pendingStartRef.current = start;
@@ -108,6 +112,7 @@ function App() {
       setGameResult(data);
       setMeetingActive(false);
       setMeetingData(null);
+      setGameEndsAt(null);
       setCurrentPage(PAGES.GAMEEND);
     };
 
@@ -240,6 +245,10 @@ function App() {
       {(currentPage === PAGES.GAME || currentPage === PAGES.WAITING) && (
         <div className={styles.gameContainer}>
           <PhaserGame/>
+          <RoomPanel
+            endsAt={currentPage === PAGES.GAME ? gameEndsAt : null}
+            localPlayerId={playerIdRef.current}
+          />
           {
             currentPage === PAGES.WAITING && (
               isLocalPlayerHost

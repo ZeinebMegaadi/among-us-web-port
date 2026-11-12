@@ -143,8 +143,13 @@ class ReliableChannel {
      * @returns {boolean} false if a message was resent MAX_RETRIES times without ACK (peer is dead)
      */
     tick(now = Date.now()) {
-        const timeout = this.rto();
+        const rto = this.rto();
         for (const entry of this.unacked.values()) {
+            // Exponential backoff, like TCP: each resend of the SAME message waits twice as long as
+            // the previous one (RTO, 2 RTO, 4 RTO... capped at MAX_RTO_MS). If the network is stalled
+            // or congested, hammering it every 100 ms does not help; and a short stall must not use
+            // up all the retries before the 5 s heartbeat timeout has had its say.
+            const timeout = Math.min(MAX_RTO_MS, rto * 2 ** (entry.tries - 1));
             if (now - entry.lastSentAt < timeout) continue;
             if (entry.tries > MAX_RETRIES) return false;
             entry.tries++;

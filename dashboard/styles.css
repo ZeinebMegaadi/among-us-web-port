@@ -490,3 +490,133 @@ h1.brand { font: 900 228px/.9 var(--disp); letter-spacing: -.045em; text-transfo
 .wk .why { font: 500 23px/1.25 var(--body); color: var(--muted); }
 .wk .fix { font: 700 24px/1.25 var(--body); padding-left: 14px; border-left: 4px solid var(--ack); margin-top: 4px; }
 .wk .fix code { font-size: 22px; }
+
+/* =====================================================================
+   Slide 1: arcade-cabinet poster, Among Us theme
+   ===================================================================== */
+.crew .sheen { stroke: none; }
+.s1 { overflow: hidden; }
+.s1::before { content: ""; position: absolute; inset: 0; background:
+  radial-gradient(760px 620px at 50% 44%, #ffb347 0, #ff6a2b 34%, #e3263a 62%, #7d0d33 86%, #2c0520 100%); }
+.s1::after { content: ""; position: absolute; inset: 0; opacity: .16; background:
+  repeating-linear-gradient(0deg, transparent 0 58px, #ffd27a 58px 61px),
+  repeating-linear-gradient(90deg, transparent 0 58px, #ffd27a 58px 61px);
+  -webkit-mask-image: radial-gradient(closest-side at 50% 50%, transparent 46%, #000 100%);
+          mask-image: radial-gradient(closest-side at 50% 50%, transparent 46%, #000 100%); }
+.arcade { position: relative; z-index: 1; display: block; font-family: "Press Start 2P", var(--mono); }
+.arcade > * { position: absolute; }
+.rays { left: 50%; top: 44%; width: 2200px; height: 2200px; margin: -1100px 0 0 -1100px; opacity: .2;
+  background: repeating-conic-gradient(from 0deg, #fff3c4 0 6deg, transparent 6deg 18deg);
+  -webkit-mask-image: radial-gradient(closest-side, #000 20%, transparent 78%);
+          mask-image: radial-gradient(closest-side, #000 20%, transparent 78%); }
+
+.strip { left: 0; right: 0; top: -22px; display: flex; align-items: center; gap: 22px; font-size: 24px; color: #fff3c4; text-shadow: 0 0 14px #ffb347; white-space: nowrap; }
+.pxdots { flex: 1; height: 8px; background: radial-gradient(circle, #fff3c4 3.5px, transparent 4px) 0 0 / 34px 8px repeat-x; opacity: .85; }
+.minis { display: flex; gap: 8px; }
+.crew.mini rect { stroke-width: 7; }
+
+/* neon signs: the protocol colour code starts here */
+.neon { top: 250px; display: flex; flex-direction: column; gap: 8px; font-family: var(--disp); line-height: .95; color: var(--p); text-shadow: 0 0 8px #fff, 0 0 26px var(--p), 0 0 70px var(--p); }
+.neon.tcp { left: 4px; } .neon.udp { right: 4px; align-items: flex-end; --p: #ffe14a; }
+.neon b { font: 900 116px/.9 var(--disp); letter-spacing: -.04em; }
+.neon span { font: 900 54px/1 var(--disp); }
+.neon small { margin-top: 10px; padding: 8px 14px; border-radius: 10px; background: rgba(20, 3, 16, .78); font: 700 24px var(--mono); color: #fff; text-shadow: none; white-space: nowrap; }
+
+/* the cabinet */
+.cab { left: 50%; top: 34px; width: 900px; height: 1010px; margin-left: -450px; }
+.cab > * { position: absolute; }
+.side { top: 70px; bottom: 0; width: 170px; background: linear-gradient(180deg, #ffb13d, #ff6a2b 45%, #c2202f); box-shadow: inset 0 0 40px rgba(255, 240, 180, .5); }
+.side.l { left: -96px; clip-path: polygon(100% 0, 100% 100%, 0 100%, 30% 10%); }
+.side.r { right: -96px; clip-path: polygon(0 0, 0 100%, 100% 100%, 70% 10%); }
+.marquee { left: 50px; right: 50px; top: 0; height: 156px; display: grid; place-items: center; border-radius: 16px 16px 6px 6px;
+  background: linear-gradient(180deg, #ff9be0, #ff4fb8 55%, #d92c95); border: 6px solid #ffd0f0;
+  box-shadow: 0 0 34px #ff66cc, 0 0 110px rgba(255, 90, 200, .75), inset 0 0 36px rgba(255, 255, 255, .55);
+  transform: perspective(900px) rotateX(-9deg); transform-origin: bottom; }
+.marquee h1 { margin: 0; font: 400 82px/1 "Press Start 2P", var(--disp); letter-spacing: -.02em; text-transform: none; color: #fff9d6;
+  text-shadow: 0 5px 0 #c2187f, 0 0 22px #fff, 0 0 46px #ffe9a8; }
+.hood { left: 30px; right: 30px; top: 156px; height: 62px; background: linear-gradient(180deg, #2a0520, #5c0f3c); clip-path: polygon(2.5% 0, 97.5% 0, 100% 100%, 0 100%); }
+.bezel { left: 30px; right: 30px; top: 216px; height: 452px; padding: 30px 62px; background: linear-gradient(180deg, #6a1238, #2d0718); box-shadow: inset 0 14px 30px rgba(0, 0, 0, .55); }
+.crt { position: relative; height: 100%; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  border-radius: 46px / 52px; color: #1657d9; text-align: center;
+  background: radial-gradient(circle at 50% 42%, #d6fbff 0, #6fe3ff 38%, #22b4f5 78%, #1489d6 100%);
+  box-shadow: 0 0 46px #4fdcff, 0 0 130px rgba(70, 215, 255, .8), inset 0 0 70px rgba(0, 70, 140, .55); }
+.crt::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle, transparent 52%, rgba(0, 50, 110, .34) 58%) 0 0 / 6px 6px; }
+.crt p { margin: 0; display: flex; align-items: center; justify-content: center; gap: 22px; }
+.crt .l1 { font-size: 28px; } .crt .l3 { font-size: 21px; }
+.crt .big { display: block; font-size: 94px; line-height: 1.16; color: #1b55e0; text-shadow: 5px 5px 0 rgba(255, 255, 255, .55), 0 0 26px rgba(255, 255, 255, .75); }
+.coin { width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff9c4, #ffd91a 55%, #e0a400); box-shadow: 0 0 0 4px #c98a00, 0 0 16px #ffe14a; }
+.scan { position: absolute; left: 0; right: 0; top: 0; height: 90px; background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .34), transparent); translate: 0 -100px; }
+.panel { left: -6px; right: -6px; top: 668px; height: 150px; display: flex; justify-content: space-around; align-items: center; padding: 0 70px;
+  background: linear-gradient(180deg, #ff4466, #d11a3c 60%, #9e0f2c); clip-path: polygon(4% 0, 96% 0, 100% 100%, 0 100%); }
+.ctl { position: relative; display: grid; grid-template-columns: 96px repeat(3, 50px); grid-template-rows: 30px 30px; gap: 8px 12px; align-items: center; }
+.stick { grid-row: 1 / 3; position: relative; width: 70px; height: 96px; transform-origin: 50% 90%; }
+.stick::before { content: ""; position: absolute; left: 4px; bottom: 0; width: 62px; height: 22px; border-radius: 50%; background: #1a0410; box-shadow: 0 3px 0 #000; }
+.stick::after { content: ""; position: absolute; left: 14px; top: 0; width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffb0b0, #ff2b3d 45%, #a10d1c); box-shadow: 0 34px 0 -15px #2a0812, 0 52px 0 -17px #2a0812, 0 0 18px rgba(255, 80, 90, .8); }
+.btn { width: 50px; height: 26px; border-radius: 50%; background: var(--b); box-shadow: 0 7px 0 var(--d), 0 0 16px var(--b), inset 0 3px 4px rgba(255, 255, 255, .6); }
+.btn.r, .btn.r2 { --b: #ff3b4e; --d: #92101f; } .btn.y, .btn.y2 { --b: #ffe14a; --d: #b48a00; } .btn.b, .btn.b2 { --b: #3b7bff; --d: #17389c; }
+.front { left: 0; right: 0; top: 818px; bottom: 0; background: linear-gradient(180deg, #a3122e, #4c0718); }
+.coinslot { left: 50%; top: 34px; width: 132px; height: 150px; margin-left: -66px; border-radius: 10px; background: linear-gradient(180deg, #b9b9c2, #6d6d78); box-shadow: inset 0 0 0 6px #45454f, 0 8px 20px rgba(0, 0, 0, .5); position: absolute; display: grid; place-items: center; }
+.coinslot i { width: 22px; height: 62px; border-radius: 11px; background: #17171c; box-shadow: 0 0 0 5px #8d8d98; }
+.coinslot span { position: absolute; bottom: 10px; font-size: 22px; color: #1b1b22; }
+.price { position: absolute; left: calc(50% + 86px); top: 60px; padding: 10px 12px; border: 4px solid #ffe14a; background: #2a0612; color: #ffe14a; font-size: 22px; line-height: 1.4; text-align: center; box-shadow: 0 0 18px rgba(255, 225, 74, .7); }
+
+/* voxel crewmates flanking the marquee */
+.voxel { width: 220px; height: 242px; filter: drop-shadow(7px 7px 0 #e0a800) drop-shadow(7px 7px 0 #b98300) drop-shadow(0 26px 30px rgba(60, 0, 20, .55)); }
+.voxel::before { content: ""; position: absolute; left: 0; top: 0; width: 22px; height: 22px; box-shadow: var(--px); }
+.voxel.vl { left: 300px; top: 150px; rotate: -12deg; }
+.voxel.vr { right: 290px; top: 40px; rotate: 11deg; scale: -1 1; }
+
+/* floating crewmates (they replace the poster's flying characters) */
+.s1 .crew.fl rect, .s1 .crew.bigc rect { stroke: none; }
+.fl { filter: drop-shadow(0 14px 12px rgba(40, 0, 30, .5)) drop-shadow(0 0 16px color-mix(in srgb, var(--c) 70%, transparent)); }
+.f1 { left: 716px; top: 196px; rotate: -10deg; } .f2 { left: 812px; top: 170px; rotate: 8deg; }
+.f3 { left: 884px; top: 214px; rotate: -6deg; } .f4 { left: 952px; top: 206px; rotate: 12deg; }
+.f5 { left: 1006px; top: 162px; rotate: -8deg; } .f6 { left: 372px; top: 430px; rotate: 9deg; }
+.bigc.bl { left: -250px; top: 500px; rotate: 6deg; filter: blur(7px) drop-shadow(0 0 60px rgba(60, 230, 140, .6)); }
+.bigc.br { left: 1296px; top: 548px; rotate: 9deg; filter: blur(1.2px) drop-shadow(0 20px 22px rgba(30, 0, 30, .55)) drop-shadow(0 0 34px rgba(80, 230, 255, .8)); }
+
+.info { right: 0; top: 520px; width: 250px; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; font-family: var(--body); }
+.info .chip { font-size: 22px; font-weight: 700; background: rgba(30, 4, 20, .78); border-color: rgba(255, 240, 200, .6); color: #fff; }
+.info .team { margin-top: 26px; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; font: 800 24px var(--body); }
+.info .edit { background: rgba(30, 4, 20, .78); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .s1.active .rays { animation: spin 90s linear infinite; }
+  .s1.active .fl, .s1.active .voxel { animation: hover 4.2s ease-in-out infinite alternate; }
+  .s1.active .f2 { animation-duration: 3.4s; animation-delay: -1s; } .s1.active .f3 { animation-duration: 5s; animation-delay: -2s; }
+  .s1.active .f4 { animation-duration: 3s; animation-delay: -.6s; } .s1.active .f5 { animation-duration: 4.6s; animation-delay: -1.6s; }
+  .s1.active .f6 { animation-duration: 3.8s; animation-delay: -2.4s; } .s1.active .vr { animation-duration: 5.4s; animation-delay: -2s; }
+  .s1.active .bigc.bl { animation: drift 7s ease-in-out infinite alternate; }
+  .s1.active .bigc.br { animation: hover 3.6s ease-in-out -1s infinite alternate; }
+  .s1.active .scan { animation: scan 4.5s linear infinite; }
+  .s1.active .marquee { animation: glow 2.6s ease-in-out infinite alternate; }
+  .s1.active .neon { animation: neon 3.2s ease-in-out infinite alternate; }
+  .s1.active .neon.udp { animation-delay: -1.6s; }
+  .s1.active .coin { animation: coin 2.4s linear infinite; }
+  .s1.active .stick { animation: wiggle 1.8s ease-in-out infinite alternate; }
+  .s1.active .ctl + .ctl .stick { animation-delay: -.9s; }
+  .s1.active .btn { animation: press 2.4s ease-in-out infinite; }
+  .s1.active .btn.y, .s1.active .btn.b2 { animation-delay: -.8s; } .s1.active .btn.b, .s1.active .btn.r2 { animation-delay: -1.6s; }
+  .s1.active .price { animation: neon 1.6s ease-in-out infinite alternate; }
+  .s1.active .cab { translate: calc(var(--px, 0) * -10px) 0; transition: translate .4s ease-out; }
+  .s1.active .bigc { translate: calc(var(--px, 0) * 26px) calc(var(--py, 0) * 14px); transition: translate .4s ease-out; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes hover { from { transform: translateY(-12px) rotate(-3deg); } to { transform: translateY(14px) rotate(4deg); } }
+@keyframes drift { from { transform: translate(0, 0) rotate(-2deg); } to { transform: translate(34px, -30px) rotate(4deg); } }
+@keyframes scan { from { translate: 0 -100px; } to { translate: 0 420px; } }
+@keyframes glow { from { filter: brightness(.93); } to { filter: brightness(1.14); } }
+@keyframes neon { from { opacity: .82; } to { opacity: 1; } }
+@keyframes coin { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.12); } }
+@keyframes wiggle { from { transform: rotate(-11deg); } to { transform: rotate(11deg); } }
+@keyframes press { 0%, 70%, 100% { transform: translateY(0); filter: brightness(1); } 80% { transform: translateY(5px); filter: brightness(1.5); } }
+
+/* title poster: fine tuning */
+.hud { z-index: 60; } .notes { z-index: 70; }
+.neon.udp { --p: var(--udp); text-shadow: 0 0 6px #fff, 0 0 22px #ffb35c, 0 0 60px var(--udp); }
+.neon.tcp { text-shadow: 0 0 6px #fff, 0 0 22px var(--tcp), 0 0 60px var(--tcp); }
+.marquee h1 { text-shadow: 0 5px 0 #c2187f, 0 0 10px rgba(255, 255, 255, .9), 0 0 34px #ffe9a8; }
+.voxel.vl { left: 312px; top: 92px; scale: .88; }
+.voxel.vr { scale: -.88 .88; }
+.f6 { left: 384px; top: 470px; }

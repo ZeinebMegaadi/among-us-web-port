@@ -9,7 +9,7 @@
 // What is tested:
 //   1. a client started BEFORE the server keeps retrying, then connects (TCP: ECONNREFUSED, UDP: HELLO loop)
 //   2. register / create / join x2 / start / moves at 20 Hz / kill (cooldown, range) / meeting / votes /
-//      game:ended with ranking / play again
+//      game:ended with ranking / play again / server time limit / a player who left stays in the ranking
 //   3. CRASH: a client process is killed (SIGKILL). TCP: the OS closes the socket (FIN/RST), seen at once.
 //      UDP: nothing is sent, seen by the 5 s heartbeat timeout.
 //   4. CABLE PULL: a relay between one client and the server silently drops everything (no FIN, no RST,
@@ -45,6 +45,8 @@ const SPAWN = { x: 560, y: 150 };
 // The UDP handshake needs HELLO and WELCOME to both survive (0.8^4 = 41% per try at 20% loss on each
 // side), one try per second, so give it more time when loss is simulated.
 const CONNECT_TIMEOUT = LOSS > 0 ? 20000 : 6000;
+// Short game time limit for the test (the real one is 3 minutes): game 1 is won by votes well before it.
+const GAME_MS = 35000;
 
 // =================================================================================================
 // CHILD MODE: one client in its own process, so the parent can kill it like a crash.
@@ -140,7 +142,7 @@ function startServer() {
     try { fs.unlinkSync(accountsFile); } catch { /* none yet */ }
     const child = spawn(process.execPath,
         [path.join(ROOT, 'backend/src/main.js'), '--proto', PROTO, '--port', String(PORT), '--loss', String(LOSS)],
-        { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, ACCOUNTS_FILE: accountsFile } });
+        { stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, ACCOUNTS_FILE: accountsFile, GAME_DURATION_MS: String(GAME_MS) } });
     let output = '';
     child.stdout.on('data', d => { output += d; });
     child.stderr.on('data', d => { output += d; });
@@ -302,8 +304,12 @@ function startMovers(clients) {
         await dana.expect('room:joined', () => dana.send('room:join', { roomId: 'SMOKE1' }));
         await pj;
         ok(true, 'Dana joined, host was told (player:joined)');
-        const list = await bob.wait('rooms:list', { where: d => d.rooms.some(r => Object.keys(r.players).length === 3) });
+        const list = await bob.wait('rooms:list', { where: d => d.rooms.some(r => r.playerCount === 3) });
         ok(!JSON.stringify(list).includes('imposter'), 'rooms:list pushed to everyone, never contains the imposter');
+        ok(list.rooms.every(r => !('players' in r)), 'rooms:list is the small lobby view (no player objects)',
+            Buffer.byteLength(JSON.stringify(list)) + ' bytes');
+        const upd = await alice.wait('room:update', { where: d => Object.keys(d.room.players).length === 3 });
+        ok(upd.room.scores[dana.id] === 0, 'room members get room:update with players and scores');
         const state = await bob.expect('room:state', () => bob.send('room:get', {}));
         ok(state.room.id === 'SMOKE1' && state.player.id === bob.id, 'room:get -> room:state');
 
@@ -317,9 +323,18 @@ function startMovers(clients) {
         const roles = await Promise.all(players.map(c => c.wait('game:started')));
         const startedAt = Date.now();
         ok(roles.filter(r => r.isImposter).length === 1, 'game:started sent privately: exactly one isImposter=true');
+        ok(roles.every(r => r.durationMs === GAME_MS && r.killCooldownMs === 10000),
+            'game:started carries the time limit and kill cooldown');
         const imp = players[roles.findIndex(r => r.isImposter)];
         const [crewA, crewB] = players.filter(c => c !== imp);
         log(`   imposter = ${imp.name}, crew = ${crewA.name}, ${crewB.name}`);
+        // Each player has their own spawn point: start walking from where the SERVER placed us.
+        for (const c of players) {
+            const st = await c.expect('room:state', () => c.send('room:get', {}));
+            c.pos = { ...st.player.state };
+        }
+        ok(new Set(players.map(c => `${c.pos.x},${c.pos.y}`)).size === 3, 'each player spawns on a different spot',
+            players.map(c => `${c.name}(${c.pos.x},${c.pos.y})`).join(' '));
         stopMovers = startMovers(players);
 
         await walkTo(crewA, 600, 160);
@@ -333,6 +348,15 @@ function startMovers(clients) {
         const leaked = crewB.inbox.filter(m => m.type === 'player:moved' && m.data.id === crewA.id
             && (m.data.x === 99999 || m.data.x === crewA.pos.x + 80));
         ok(leaked.length === 0, 'server dropped a move outside the map and a move faster than max speed');
+        // The correction is a reliable message (in UDP): it must arrive even under loss.
+        // Our bad move is itself an unreliable packet and may be lost: resend it until corrected.
+        let corr = null;
+        for (let k = 0; k < 6 && !corr; k++) {
+            crewA.send('player:move', { x: 99999, y: 160, d: 'right', moving: false });
+            corr = await crewA.wait('player:corrected', { timeout: 1000 }).catch(() => null);
+        }
+        ok(corr && corr.id === crewA.id && corr.x !== 99999 && corr.x !== crewA.pos.x + 80,
+            'the sender is told the position the server kept (player:corrected)', `(${corr.x}, ${corr.y})`);
 
         e = await imp.expect('game:notif', () => imp.send('player:kill', { playerId: crewA.id }));
         ok(/cooldown/.test(e.message), 'kill refused during the 10 s cooldown', e.message);
@@ -348,6 +372,11 @@ function startMovers(clients) {
         const killed = await crewB.expect('player:killed', () => imp.send('player:kill', { playerId: crewA.id }));
         ok(killed.playerId === crewA.id && killed.killerId === imp.id, 'kill accepted in range, broadcast to all');
         ok(killed.color === crewA.color, 'body has the victim\'s color', killed.color);
+        await sleep(150);
+        crewB.inbox = crewB.inbox.filter(m => !(m.type === 'player:moved' && m.data.id === crewA.id));
+        await sleep(400);
+        ok(!crewB.inbox.some(m => m.type === 'player:moved' && m.data.id === crewA.id),
+            'a dead player\'s moves are not relayed (ghost)');
 
         e = await crewA.expect('game:notif', () => crewA.send('meeting:start', {}));
         ok(/Dead/.test(e.message), 'a dead player cannot call a meeting');
@@ -374,9 +403,13 @@ function startMovers(clients) {
 
         // ---- 4. play again, then a crash -------------------------------------------------------
         log('4. play again, then Dana\'s process is killed (crash)');
-        players.forEach(c => { c.inbox = c.inbox.filter(m => m.type !== 'game:started'); });
+        // Every client must have received game 1's game:ended before game 2 starts. Under simulated
+        // loss a copy can still be in retransmission; arriving later, it would be mistaken for game 2's.
+        await Promise.all(players.filter(c => c !== crewA).map(c => c.wait('game:ended')));
+        players.forEach(c => { c.inbox = c.inbox.filter(m => m.type !== 'game:started' && m.type !== 'game:ended'); });
         alice.send('game:start', {});
         const roles2 = await Promise.all(players.map(c => c.wait('game:started')));
+        const roles2At = Date.now();
         const imp2 = players[roles2.findIndex(r => r.isImposter)];
         ok(imp2 !== imp, 'second game: the imposter role rotated', `${imp.name} -> ${imp2.name}`);
 
@@ -392,13 +425,27 @@ function startMovers(clients) {
         } else {
             // A dead process sends nothing, so in UDP only silence can reveal it. Two mechanisms can
             // fire, whichever comes first: the 5 s heartbeat timeout, or (if reliable messages were
-            // waiting for an ACK) MAX_RETRIES resends without ACK (25 x 100 ms min RTO = ~2.6 s).
-            ok(crashSecs >= 2 && crashSecs <= 7 && /timeout|retransmissions/.test(left.reason),
+            // waiting for an ACK) MAX_RETRIES resends without ACK (~20 s with exponential backoff, so
+            // the heartbeat normally wins).
+            ok(crashSecs >= 2 && crashSecs <= (LOSS > 0 ? 10 : 7) && /timeout|retransmissions/.test(left.reason),
                 'UDP: crash seen through silence (heartbeat timeout or retransmission limit)',
                 `${crashSecs.toFixed(1)} s, "${left.reason}"`);
         }
-        const ge2 = alice.inbox.find(m => m.type === 'game:ended');
-        log(`   after the crash: ${ge2 ? 'game ended (' + (ge2.data.isImposter ? 'imposter' : 'crew') + ' wins)' : 'game continues with 2 players'}`);
+        // Which ending is expected depends on who crashed. Decide from the ROLE, not from whether
+        // game:ended has already arrived: it is sent right after player:left and may still be in flight.
+        let ge2;
+        if (dana === imp2) {
+            ge2 = await alice.wait('game:ended', { timeout: 5000 });
+            ok(ge2.reason === 'imposter-left' && ge2.isImposter === false, 'the imposter crashed: the crew wins at once');
+        } else {
+            log('   game continues with 2 players: waiting for the server\'s time limit');
+            ge2 = await alice.wait('game:ended', { timeout: GAME_MS + 5000 });
+            ok(ge2.reason === 'time-up' && ge2.isImposter === false, 'server time limit reached: the crew wins',
+                `after ${((Date.now() - roles2At) / 1000).toFixed(1)} s`);
+        }
+        const danaLine = ge2.ranking.find(r => r.id === dana.id);
+        ok(danaLine && danaLine.left === true, 'the crashed player is still in the final ranking, marked as left',
+            ge2.ranking.map(r => `${r.name}=${r.points}${r.left ? ' (left)' : ''}`).join(', '));
         stopMovers();
 
         // ---- 5. cable pull --------------------------------------------------------------------

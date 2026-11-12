@@ -151,7 +151,7 @@ export function Menu({onJoinGame}) {
   return (<div className={styles.container}>
     {isRegistered && (<Button onClick={handleBackToRegister} children="Back" className={styles.backBtn}/>)}
     <div className={styles.card}>
-      <h1 className={styles.title}>Among Us</h1>
+      <h1 className={styles.title}>Among Us Arena</h1>
       {!isRegistered ? (<div className={styles.section}>
         <h2 className={styles.subtitle}>Log in</h2>
         <p className={styles.hint}>A new name creates an account. The same name later must use the same password.</p>
@@ -206,7 +206,7 @@ export function Menu({onJoinGame}) {
             <ul className={styles.roomList}>
               {Object.values(rooms).map((room) => (
                 <li className={styles.lobbyCard} key={room.id} onClick={() => handleJoinRoom(room.id)}>
-                  <span className={styles.roomId}>{room.id}</span> - Host: <span className={styles.highlight}>{room.host.name}</span> - Players: <span className={styles.highlight}>{Object.keys(room.players).length}</span>
+                  <span className={styles.roomId}>{room.id}</span> - Host: <span className={styles.highlight}>{room.host.name}</span> - Players: <span className={styles.highlight}>{room.playerCount}</span>
                   {room.started && <span className={styles.highlight}> (in game)</span>}
                 </li>
               ))}
