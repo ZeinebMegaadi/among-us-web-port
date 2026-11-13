@@ -742,7 +742,7 @@ Title: **"Same game. Different behaviour."**
 Step 1, **Counters at 20% loss** (UDP, 2 clients, same scripted game): retransmits **14 · 6**,
 duplicates **16 · 20**, out-of-order **9 · 12**, positions lost **41% · 37%**. *"Theory: 1 − 0.8² = 36%
 lost. Measured: close."* TCP: *"nothing to count, reliability: OS TCP stack"*. Two editable boxes:
-**RTT on the LAN · TCP `__` ms** and **· UDP `__` ms**.
+**LAN RTT avg · TCP 15.1 ms** (p95 49 ms) and **LAN RTT avg · UDP 14.8 ms** (p95 43 ms).
 
 **Steps 2–4: advantages and drawbacks, verdict**
 
@@ -772,9 +772,14 @@ Unreliable for state that expires."**
   UDP server + UDP client), comments included. The ≈ 950 lines of game logic are shared.
 - "20% loss → movement stalls" for TCP is **by design**, not measured: the test's `--loss` option can only
   drop UDP datagrams; you can't drop bytes inside a TCP stream from the application.
-- **RTT boxes:** fill them from a rehearsal on the 4 real laptops (`node tools/summarize-netstats.mjs
-  frontend/netstats-*.csv`). Loopback values (~1 ms) don't compare anything. If you have no LAN numbers,
-  clear the boxes or say "not measured on the LAN".
+- **RTT boxes:** real LAN runs recorded on 13 Nov against the same server (`192.168.1.136`), summarized
+  with `node tools/summarize-netstats.mjs frontend/netstats-tcp-29108.csv frontend/netstats-udp-8396.csv`:
+  TCP over 629 s: avg **15.1 ms**, p95 49 ms, max 268 ms, jitter 16.4 ms.
+  UDP over 1527 s: avg **14.8 ms**, p95 43 ms, max 339 ms, jitter 14.6 ms, positions lost **0.66%**
+  (21), **2** retransmits, 0 duplicates, 0 reordered.
+  The point to make: **on a healthy LAN the two protocols look identical**. The differences only appear
+  under loss and on disconnection, which is why we measured those.
+  (If someone retyped the boxes before, the browser keeps their value: click the box and retype.)
 
 ### Sample pitch
 
@@ -791,6 +796,10 @@ Unreliable for state that expires."**
 > losing twenty percent, is 36 percent. And the game stayed playable, because the next position always
 > comes 50 milliseconds later. In TCP, the same loss would be repaired by the kernel, so nothing is lost,
 > but movement stalls while it waits.
+>
+> And on our real LAN, without loss? The round trip was about 15 milliseconds for both. Over 25 minutes
+> of UDP play, less than one percent of positions were lost and only two events had to be resent. On a
+> healthy network, the two protocols look the same; the differences appear when things go wrong.
 >
 > UDP also cost us something: our messages are bigger, about 155 kilobytes against 94 for the same game,
 > because every datagram carries the token, our header and separate ACKs. And we wrote about sixty percent
@@ -1017,8 +1026,9 @@ README §5 (TCP) and §6 (UDP)*.
 
 | # | Item | Where | What to do |
 |---|---|---|---|
-| 1 | RTT boxes still show `__ ms` | Slide 10, step 1 | Fill from the 4-laptop rehearsal (`node tools/summarize-netstats.mjs frontend/netstats-*.csv`) or say "not measured on the LAN". Loopback RTT (~1 ms) compares nothing. |
-| 2 | The slide 2 speaker note says "Four parts, one per speaker" | Slide 2 notes | True only if each part has one speaker. With the split above (Zeineb on TCP, Ilyes on UDP) say "four parts" without "one per speaker". |
+| 1 | ~~RTT boxes showed `__ ms`~~ **Fixed** | Slide 10, step 1 | Filled with the 13 Nov LAN runs: TCP 15.1 ms, UDP 14.8 ms (p95 49 / 43). If a box still shows an old value, it was typed earlier and saved in that browser: click it and retype. |
+| 2 | ~~Slide 2 note said "one per speaker"~~ **Fixed** | Slide 2 notes | Now just "Four parts." |
+| 2b | "LAN ≈ 10 ms" on slide 13 vs "15 ms" on slide 10 | Slides 10 and 13 | Not a contradiction: slide 10 shows the **average** (15.1 / 14.8 ms, pulled up by Wi-Fi spikes), slide 13 compares **medians** (Tailscale 118 ms vs LAN median 7 ms TCP / 5 ms UDP, rounded up). If asked: "the average includes a few Wi-Fi spikes; the typical round trip is 5 to 7 ms." |
 | 3 | Minimum players | Code vs demo | Code allows a start with 2 players; you play with 4. If asked: "minimum 2, we play with 4". |
 | 4 | Smoke test used 3 clients, demo uses 4 | Slides 8 and 10 | The measured numbers come from the 3-client automated test. Say "automated test" when citing them. |
 | 5 | No exponential backoff | Slides 6, 9 | Never say the resend timer "doubles". It is a fixed, adaptive RTO (2 × SRTT, clamped 100–1000 ms). Backoff is the next improvement. |
@@ -1044,6 +1054,15 @@ README §5 (TCP) and §6 (UDP)*.
 | Out-of-order buffered | kernel | 0 / 0 | 9 / 12 |
 | Positions lost | 0 | 0 | 41% / 37% |
 | App bytes out / in, one client | 20.7 / 72.8 KB | 43.7 / 111.6 KB | 37.3 / 58.7 KB |
+
+**Real LAN runs, 13 Nov 2026, same server `192.168.1.136`** (`tools/summarize-netstats.mjs`)
+
+| | TCP (629 s) | UDP (1527 s) |
+|---|---|---|
+| RTT median / avg / p95 / max | 7 / 15.1 / 49 / 268 ms | 5 / 14.8 / 43 / 339 ms |
+| Jitter | 16.4 ms | 14.6 ms |
+| Positions lost | 0 (kernel repairs) | 0.66% (21) |
+| Retransmits / duplicates / reordered | kernel | 2 / 0 / 0 |
 
 **Protocol constants** ([shared/protocol.cjs](../shared/protocol.cjs)): heartbeat 1 s · timeout 5 s ·
 RTO = 2 × SRTT clamped to [100, 1000] ms, 200 ms before the first sample · 25 retries · datagram
