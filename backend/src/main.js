@@ -152,6 +152,8 @@ transport.on('connect', (sessionId, address) => {
     console.log(`[server] session ${sessionId} ready (${address}), ${connectedSessions.size} connected`);
 });
 
+// Simultaneous players: Node.js handles one message at a time (single thread, event loop), so two
+// players' actions never run at the same moment: no locks needed, no race between two kills.
 transport.on('message', (sessionId, type, data) => {
     const handler = handlers[type];
     if (!handler) {

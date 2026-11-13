@@ -40,6 +40,7 @@ export function startTcpServer(port) {
             stats: { bytesIn: 0, bytesOut: 0, msgsIn: 0, msgsOut: 0 },
         };
         sessions.set(session.id, session);
+        // One socket per client: the socket itself identifies the player, never a field in the message.
 
         // Disable Nagle's algorithm: by default TCP waits to group small writes together,
         // which adds delay to our small, frequent game messages.
@@ -60,6 +61,7 @@ export function startTcpServer(port) {
         socket.on('data', (chunk) => {
             session.lastHeardAt = Date.now();
             session.stats.bytesIn += chunk.length;
+            // TCP is a byte stream: a chunk may hold half a message or several; the framer cuts lines.
             framer.push(chunk);
         });
 
@@ -72,6 +74,7 @@ export function startTcpServer(port) {
         });
 
         console.log(`[TCP] + ${session.id} connected from ${session.address}`);
+        // Application-level "you are connected": confirms the game server (not just any TCP listener) answered.
         send(session.id, 'welcome', { sessionId: session.id, proto: 'tcp' });
         events.emit('connect', session.id, session.address);
     });

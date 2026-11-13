@@ -117,6 +117,7 @@ class ReliableChannel {
         // resent, we cannot know which copy this ACK answers.
         if (entry.tries === 1) {
             const sample = Date.now() - entry.lastSentAt;
+            // Same smoothing as TCP (EWMA, alpha = 1/8): one slow sample doesn't swing the estimate.
             this.srtt = this.srtt === null ? sample : 0.875 * this.srtt + 0.125 * sample;
         }
     }
@@ -150,6 +151,7 @@ class ReliableChannel {
     /** Retransmission timeout: how long we wait for an ACK before resending. */
     rto() {
         if (this.srtt === null) return INITIAL_RTO_MS;
+        // 2 x RTT: room for jitter. Too short = useless duplicates; too long = slow recovery.
         return Math.min(MAX_RTO_MS, Math.max(MIN_RTO_MS, 2 * this.srtt));
     }
 

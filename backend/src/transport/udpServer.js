@@ -31,6 +31,7 @@ const { TIMEOUT_MS, MAX_DATAGRAM_BYTES, UNRELIABLE_TYPES } = protocol;
 
 export function startUdpServer(port, { loss = 0 } = {}) {
     const events = new EventEmitter();
+    // ONE socket for every client: UDP has no per-client connection like TCP's accepted sockets.
     const socket = dgram.createSocket('udp4');
     const sessionsByAddress = new Map(); // "ip:port" -> session
     const sessionsById = new Map();      // sessionId -> session
@@ -44,11 +45,13 @@ export function startUdpServer(port, { loss = 0 } = {}) {
             return;
         }
         const bytes = Buffer.from(JSON.stringify(packet));
+        // Above ~1200 bytes IP may fragment the datagram: losing any fragment loses the whole datagram.
         if (bytes.length > MAX_DATAGRAM_BYTES) {
             console.warn(`[UDP] warning: ${bytes.length}-byte datagram (${packet.type || packet.t}) may be fragmented`);
         }
         totals.datagramsOut++;
         totals.bytesOut += bytes.length;
+        // One send() = one independent datagram: may be lost, duplicated or reordered; no ACK here.
         socket.send(bytes, port, address);
     }
 
@@ -137,9 +140,11 @@ export function startUdpServer(port, { loss = 0 } = {}) {
             return;
         }
 
+        // Any valid packet proves the client is alive (silence for 5 s = gone: UDP never says "closed").
         session.lastHeardAt = Date.now();
 
         if (packet.t === 'PING') {
+            // Echo the client's timestamp: client computes RTT = now - ts.
             sendToSession(session, { t: 'PONG', ts: packet.ts });
         } else if (packet.t === 'BYE') {
             closeSession(session, 'client said BYE', { sayBye: false });
@@ -163,6 +168,7 @@ export function startUdpServer(port, { loss = 0 } = {}) {
     function send(sessionId, type, data) {
         const session = sessionsById.get(sessionId);
         if (!session || session.closed) return;
+        // Positions: unreliable FAST (a newer one comes 50 ms later). Everything else: reliable MSG.
         if (UNRELIABLE_TYPES.includes(type)) session.channel.sendUnreliable(type, data);
         else session.channel.sendReliable(type, data);
     }
@@ -172,6 +178,7 @@ export function startUdpServer(port, { loss = 0 } = {}) {
         process.exit(1);
     });
 
+    // 0.0.0.0 = receive on every interface (Wi-Fi, Ethernet, Tailscale).
     socket.bind(port, '0.0.0.0', () => {
         console.log(`[UDP] game server listening on 0.0.0.0:${port}` + (loss ? ` (simulated loss ${loss * 100}%)` : ''));
     });

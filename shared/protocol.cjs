@@ -10,8 +10,8 @@ module.exports = {
     // the client sends a PING every second, the server answers PONG.
     // If one side hears NOTHING from the other for TIMEOUT_MS, the other side is considered gone.
     // (TCP's own keep-alive would take ~2 hours to notice a pulled cable, so we do it ourselves.)
-    HEARTBEAT_INTERVAL_MS: 1000,
-    TIMEOUT_MS: 5000,
+    HEARTBEAT_INTERVAL_MS: 1000,   // 1 s: cheap, and also keeps NAT/router mappings open (UDP)
+    TIMEOUT_MS: 5000,              // 5 missed heartbeats: tolerates a few lost packets, still detects fast
 
     // UDP reliability (our own, because UDP has none):
     // a reliable message is resent until its ACK arrives.
@@ -19,6 +19,7 @@ module.exports = {
     MAX_RTO_MS: 1000,         // never wait longer than this before resending
     INITIAL_RTO_MS: 200,      // before we have measured the round-trip time
     MAX_RETRIES: 25,          // after this many resends without ACK, the peer is considered dead
+                              // (25 x up to 1 s: survives heavy loss, still ends a dead session)
 
     // Keep every datagram well below the usual 1500-byte Ethernet MTU (and the 1280-byte
     // Tailscale tunnel MTU) so IP never has to fragment it.

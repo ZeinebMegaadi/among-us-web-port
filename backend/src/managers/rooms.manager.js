@@ -36,6 +36,7 @@ export const RoomsManager = {
                 return {deleted: true, hostChanged: false};
             }
             if (room.host.id === player.id) {
+                // Host left or disconnected: the next player becomes host, so the room is never stuck.
                 room.host = remaining[0];
                 return {deleted: false, hostChanged: true};
             }
@@ -189,6 +190,7 @@ export const RoomsManager = {
  * (the original project sent the imposter's id to everybody).
  */
 export function publicRoom(room) {
+    // No "imposter" field: the role is never in shared data, each player gets theirs privately.
     const players = {};
     for (const p of Object.values(room.players)) {
         players[p.id] = {id: p.id, name: p.name, color: p.color, isAlive: p.isAlive, state: p.state};

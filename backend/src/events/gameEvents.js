@@ -79,6 +79,7 @@ function endGame(ctx, roomId, imposterWon) {
         if (!imposterWon && !isImposter) room.scores[p.id] += POINTS.CREW_WIN;
     }
 
+    // Ranking = highest points first (ties: alphabetical), sent to every player with the winner.
     const ranking = Object.values(room.players)
         .map(p => ({ id: p.id, name: p.name, color: p.color, points: room.scores[p.id] || 0 }))
         .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
@@ -255,6 +256,7 @@ function playerKill(ctx, sessionId, data) {
     const { player: killer, room } = found;
     const victim = room.players[data.playerId];
 
+    // Every rule is checked here, on the server: a modified client cannot kill out of turn.
     if (!room.started) return notify(ctx, sessionId, 'The game has not started');
     if (room.imposter !== killer.id) return notify(ctx, sessionId, 'Only the imposter can kill');
     if (!killer.isAlive) return notify(ctx, sessionId, 'You are dead');
