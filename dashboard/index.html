@@ -654,20 +654,31 @@ transport.send(sessionId, type, data)</pre>
           <p class="after">Numbers, confirmations, resends, token.</p></div>
       </div>
 
-      <div class="opts" data-step="7">
-        <div class="glass opt"><b>144 → 20</b><span>positions per second</span></div>
-        <div class="glass opt"><b>−⅓</b><span>traffic: no echo to the sender</span></div>
-        <div class="glass opt"><b>smooth</b><span>other players glide between updates</span></div>
-        <div class="glass opt"><b>push</b><span>room list sent on change, never polled</span></div>
-        <div class="glass tcp opt"><b class="t">no Nagle</b><span>TCP: no waiting before sending</span></div>
-        <div class="glass udp opt"><b class="u">2 × RTT</b><span>UDP: resend timer adapts</span></div>
-        <div class="glass udp opt"><b class="u">&lt; 1200 B</b><span>UDP: packets never split</span></div>
-        <div class="glass opt"><b>off-thread</b><span>login never freezes the game</span></div>
+      <div class="optwrap" data-step="7">
+        <p class="optlegend"><span class="lg a">both versions</span><span class="lg t">TCP only</span><span class="lg u">UDP only</span><span class="lgnote">each card: the number, what we changed, why it helps</span></p>
+        <div class="opts">
+          <div class="glass opt"><b>144 → 20</b><span class="what">positions per second</span>
+            <p class="why">We used to send one every screen frame, so a 144&nbsp;Hz screen sent 144. Now 20 while moving and 2 when standing still: <em>about 7× less traffic</em>.</p></div>
+          <div class="glass opt"><b>4 → 3</b><span class="what">copies of each move</span>
+            <p class="why">The server used to send your own position back to you. Now it goes only to the <em>other</em> players: one send fewer per move.</p></div>
+          <div class="glass opt"><b>smooth</b><span class="what">others glide between updates</span>
+            <p class="why">20 updates/s would look jumpy. Each frame, a remote player moves 30% of the way to its last known spot, so <em>fewer packets still look fluid</em>.</p></div>
+          <div class="glass opt"><b>push</b><span class="what">room list sent only on change</span>
+            <p class="why">Clients never ask "anything new?" again and again. The server sends the list <em>once</em>, when a room is created, joined, left or started.</p></div>
+          <div class="glass tcp opt"><b class="t">no Nagle</b><span class="what">TCP: messages leave at once</span>
+            <p class="why">By default TCP holds small writes back to bundle them, which adds delay. <code>setNoDelay(true)</code> sends <em>every move immediately</em>.</p></div>
+          <div class="glass udp opt"><b class="u">2 × RTT</b><span class="what">UDP: the resend timer adapts</span>
+            <p class="why">We wait twice the measured round trip (100–1000&nbsp;ms) before resending: <em>quick on a LAN, patient over the internet</em>, no useless resends.</p></div>
+          <div class="glass udp opt"><b class="u">&lt; 1200 B</b><span class="what">UDP: packets are never split</span>
+            <p class="why">Every datagram fits in one network packet. A split datagram is lost entirely if <em>one piece</em> is lost, so we never let that happen.</p></div>
+          <div class="glass opt"><b>off-thread</b><span class="what">login never freezes the game</span>
+            <p class="why">Password hashing (scrypt) is slow on purpose. It runs on Node's background threads, so <em>other players keep moving</em> while someone logs in.</p></div>
+        </div>
       </div>
     </div>
     <div class="fxwalk" aria-hidden="true" data-until="6"><i class="crew walk" style="--c:var(--ack);--w:60px"></i></div>
   </div>
-  <p class="say" hidden>Six problems, six fixes. The original project used libraries that hid TCP, so we removed them. Browsers can't open sockets, so a local agent does it. Players could cheat, so the server now checks everything. Positions were sent up to 144 times per second; now 20. Dead players stayed connected; now a heartbeat removes them. And UDP promised nothing, so we built reliability ourselves. Then the optimizations, each with a number. The hardest part was not writing sockets: it was discovering what the libraries had been doing for us.</p>
+  <p class="say" hidden>Six problems, six fixes. The original project used libraries that hid TCP, so we removed them. Browsers can't open sockets, so a local agent does it. Players could cheat, so the server now checks everything. Positions were sent up to 144 times per second; now 20. Dead players stayed connected; now a heartbeat removes them. And UDP promised nothing, so we built reliability ourselves. Then the optimizations, each with a number. Positions went from up to 144 per second to 20, and 2 when standing still. The server no longer echoes your own position back to you. Remote players glide between updates, so fewer packets still look smooth. The room list is pushed only when it changes, never polled. In TCP we turned off Nagle so small messages leave at once. In UDP the resend timer is twice the measured round trip, and every datagram stays under 1200 bytes so it is never fragmented. And password hashing runs off the main thread, so a login never freezes the game. The hardest part was not writing sockets: it was discovering what the libraries had been doing for us.</p>
 </section>
 
 <!-- ================= BACKUP: network weaknesses (for questions) ================= -->
