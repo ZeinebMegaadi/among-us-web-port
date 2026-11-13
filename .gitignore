@@ -143,3 +143,14 @@ vite.config.ts.timestamp-*
 .idea/
 .output.txt
 
+
+# client network statistics (electron/main.cjs)
+netstats-*.csv
+
+# account password hashes (created by the server on first login)
+backend/data/
+
+# per-laptop server address for the client (scripts/set-server.*), see frontend/server.example.json
+frontend/server.json
+
+release/

@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Among Us Arena: one game, two transports</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="title.css">
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<!-- soft drifting light behind every slide (styles.css: .aura) -->
+<div class="aura" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+<main class="stage" id="stage">
+
+<!-- ================= 1. TITLE: the arcade cabinet =================
+     Markup only; title.js draws the dot-matrix text, the glossy crewmates, the voxel
+     crewmates, the marquee bulbs and the dust. title.css holds the look and the motion. -->
+<section class="slide s1" data-steps="0" data-hud="TCP :5000 · UDP :5001 · Node net + dgram only">
+  <div class="inner">
+    <h1 class="sr">Among Us Arena: one game, two transports. Computer Networks</h1>
+
+    <!-- back: heat glow, light rays, two out-of-focus cabinets, one ejected crewmate drifting by -->
+    <div class="arc-bg" aria-hidden="true">
+      <div class="halo"></div>
+      <div class="rays"></div>
+      <div class="bgcab l"><div class="bgscr"><i class="crew" style="--c:var(--tcp);--w:44px"></i></div></div>
+      <div class="bgcab r"><div class="bgscr"><i class="crew" style="--c:var(--udp);--w:44px"></i></div></div>
+      <div class="drift"><i class="amg" style="--c:#B79CFF"></i></div>
+      <div class="dust"></div>
+    </div>
+
+    <!-- top strip, after the poster's channel line -->
+    <p class="arc-top">
+      <span class="mini lead" aria-hidden="true"><i class="crew walk" style="--c:var(--tcp);--w:36px"></i></span>
+      <span class="pips tcp" aria-hidden="true"></span>
+      <span>CS411 - Computer Networks</span>
+      <span class="pips udp" aria-hidden="true"></span>
+      <span class="mini crew4" aria-hidden="true">
+        <i class="crew" style="--c:#7FA8FF;--w:26px"></i><i class="crew" style="--c:#E8EDFF;--w:26px"></i><i class="crew" style="--c:#B79CFF;--w:26px"></i><i class="crew" style="--c:#FF8AD8;--w:26px"></i>
+      </span>
+    </p>
+
+    <!-- the cabinet: real CSS 3D (wings, tilted control panel, apron) -->
+    <div class="scene">
+      <div class="cab">
+        <div class="wing l" aria-hidden="true"><div class="wface"></div></div>
+        <div class="wing r" aria-hidden="true"><div class="wface"></div></div>
+
+        <div class="marquee">
+          <div class="bulbs top" aria-hidden="true"></div>
+          <div class="mqrow" role="img" aria-label="TCP versus UDP"><span class="dm mq tcp" data-dm="TCP" data-dot="11"></span><span class="dm mq vs" data-dm="VS" data-dot="11"></span><span class="dm mq udp" data-dm="UDP" data-dot="11"></span></div>
+          <div class="bulbs bot" aria-hidden="true"></div>
+        </div>
+
+        <div class="bezel">
+          <div class="screen">
+            <i class="coin c1" aria-hidden="true"></i><i class="coin c2" aria-hidden="true"></i>
+            <i class="coin c3" aria-hidden="true"></i><i class="coin c4" aria-hidden="true"></i>
+            <div class="lines" role="img" aria-label="Among Us Arena. One game, two transports.">
+              <span class="dm big" data-dm="AMONG US" data-dot="14"></span>
+              <span class="dm big" data-dm="ARENA" data-dot="14"></span>
+              <span class="dm sm" data-dm="ONE GAME · TWO TRANSPORTS" data-dot="5"></span>
+            </div>
+            <div class="scan" aria-hidden="true"></div>
+            <div class="glare" aria-hidden="true"></div>
+          </div>
+          <p class="credits">Raw sockets · 0 networking libraries · 1 server + 4 clients</p>
+        </div>
+
+        <div class="panel" aria-hidden="true">
+          <div class="joy tcp" style="--x:150px"><i class="jbase"></i><i class="shaft"><b class="ball"></b></i></div>
+          <div class="btns" style="--x:250px"><i class="btn r"></i><i class="btn y"></i><i class="btn b"></i><i class="btn r"></i><i class="btn y"></i><i class="btn b"></i></div>
+          <div class="joy udp" style="--x:590px"><i class="jbase"></i><i class="shaft"><b class="ball"></b></i></div>
+          <div class="btns" style="--x:690px"><i class="btn r"></i><i class="btn y"></i><i class="btn b"></i><i class="btn r"></i><i class="btn y"></i><i class="btn b"></i></div>
+        </div>
+
+        <div class="apron">
+          <p class="plabels"><b class="t">P1 · TCP <code>:5000</code></b><span>Node <code>net</code> + <code>dgram</code> only</span><b class="u">UDP <code>:5001</code> · P2</b></p>
+          <div class="arow">
+            <div class="pslot"><i class="crew" style="--c:#7FA8FF;--w:40px"></i><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Israa Daassi</span></div>
+            <div class="pslot"><i class="crew" style="--c:#E8EDFF;--w:40px"></i><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div>
+            <div class="coindoor" aria-hidden="true">
+              <div class="slotplate"><i></i><i></i></div>
+              <p>Insert packet</p>
+              <span class="price">1 PKT<br>to play</span>
+            </div>
+            <div class="pslot"><i class="crew" style="--c:#B79CFF;--w:40px"></i><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div>
+            <div class="pslot"><i class="crew" style="--c:#FF8AD8;--w:40px"></i><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- front: giant voxel crewmates (where the poster has its two big pixel heroes) -->
+    <div class="vox l" aria-hidden="true"><div class="vbody" data-px="19"></div></div>
+    <div class="vox r" aria-hidden="true"><div class="vbody" data-px="24"></div></div>
+
+    <!-- the flying cast, in place of the poster's ghosts (depth = parallax strength) -->
+    <div class="flyers" aria-hidden="true">
+      <div class="par" style="--x:612px;--y:186px;--d:10"><div class="fly" style="--w:104px;--r:-9deg;--t:3.1s;--k:0"><i class="amg" style="--c:#FF8AD8"></i></div></div>
+      <div class="par" style="--x:752px;--y:176px;--d:7"><div class="fly" style="--w:82px;--r:7deg;--t:2.7s;--k:1"><i class="amg" style="--c:#7FA8FF"></i></div></div>
+      <div class="par" style="--x:876px;--y:196px;--d:8"><div class="fly" style="--w:80px;--r:-4deg;--t:3.4s;--k:2"><i class="amg" style="--c:#E8EDFF"></i></div></div>
+      <div class="par" style="--x:992px;--y:180px;--d:6"><div class="fly" style="--w:62px;--r:10deg;--t:2.5s;--k:3"><i class="amg" style="--c:#FF3B4E"></i></div></div>
+      <div class="par" style="--x:1110px;--y:174px;--d:11"><div class="fly" style="--w:108px;--r:6deg;--t:3.6s;--k:4"><i class="amg" style="--c:#B79CFF"></i></div></div>
+      <div class="par soft" style="--x:120px;--y:520px;--d:4"><div class="fly" style="--w:70px;--r:-14deg;--t:4.2s;--k:5"><i class="amg" style="--c:#FF8AD8"></i></div></div>
+      <div class="par" style="--x:1540px;--y:520px;--d:16"><div class="fly" style="--w:230px;--r:-8deg;--t:4.6s;--k:6"><i class="amg" style="--c:#FF8A1F"></i></div></div>
+      <div class="par fg" style="--x:-150px;--y:600px;--d:30"><div class="fly" style="--w:470px;--r:12deg;--t:6s;--k:7"><i class="amg" style="--c:#38FEDC"></i></div></div>
+    </div>
+  </div>
+  <p class="say" hidden>Good morning. We are Israa, Zeineb, Ilyes and Nabila, and this is Among Us Arena: a competitive multiplayer game for three players, built twice with exactly the same rules, once on TCP only and once on UDP only. We used no networking library at all, only Node's built-in net and dgram modules. Everything we show today is either something a protocol gave us for free, or something we had to build ourselves.</p>
+</section>
+
+<!-- ================= 2. OUTLINE ================= -->
+<section class="slide so" data-steps="0" data-hud="outline · 4 parts · about 20 minutes">
+  <div class="inner">
+    <header class="head"><p class="kicker">Outline</p><h2>Agenda</h2></header>
+
+    <div class="outline">
+      <div class="glass act" style="--p:#A99BFF">
+        <p class="actn">Part 1 · Context</p>
+        <h3>Context</h3>
+        <ol>
+          <li><b>1</b><div><strong>The game</strong><span></span></div></li>
+          <li><b>2</b><div><strong>Architecture</strong><span></span></div></li>
+        </ol>
+      </div>
+
+      <div class="glass act" style="--p:#E8EDFF">
+        <p class="actn">Part 2 · The two versions</p>
+        <h3>Two Transports</h3>
+        <ol>
+          <li><b class="t">3</b><div><strong class="t">TCP version</strong><span></span></div></li>
+          <li><b class="u">4</b><div><strong class="u">UDP version</strong><span></span></div></li>
+        </ol>
+      </div>
+
+      <div class="glass act" style="--p:var(--ack)">
+        <p class="actn">Part 3 · Analysis</p>
+        <h3>Analysis</h3>
+        <ol>
+          <li><b>8</b><div><strong>TCP vs UDP comparison</strong><span></span></div></li>
+          <li><b>9</b><div><strong>Challenges &amp; optimizations</strong><span></span></div></li>
+        </ol>
+
+      </div>
+
+      <div class="glass act" style="--p:var(--warn)">
+        <p class="actn">Part 4 · Proof</p>
+        <h3>Live demo</h3>
+
+        <ol>
+          <li><b>5</b><div><strong>Live demo</strong><span></span></div></li>
+          <li><b>6</b><div><strong>Players &amp; disconnections</strong><span></span></div></li>
+          <li><b>7</b><div><strong>Edge cases</strong><span></span></div></li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+  <p class="say" hidden>Here is our plan. In the first part we explain the game and the architecture, so you know what the network has to carry. In the second part we look at each version in turn: what TCP gave us, and what we had to rebuild on top of UDP. Then comes the proof: a live game on four computers, played on TCP and then on UDP, followed by how each version handles simultaneous players, disconnections and the awkward edge cases. We finish with the comparison, using numbers we measured, and with the challenges we met and the optimizations we made. Each of us presents a part.</p>
+</section>
+
+<!-- ================= 3. THE GAME ================= -->
+<section class="slide sg" data-steps="1" data-hud="3 players · 1 imposter vs 2 crewmates · personal scores">
+  <div class="inner">
+    <header class="head"><p class="kicker">1 · The game</p><h2>Competitive by design</h2></header>
+
+    <div class="game">
+      <div class="glass rules">
+        <h3>Rules</h3>
+        <ul>
+          <li><b>3 players:</b> 1 imposter, chosen secretly by the server, against 2 crewmates.</li>
+          <li><b>Imposter</b> kills a crewmate who is close enough (≤ 100 px), at most once every 10 s.</li>
+          <li><b>Any living player</b> can call one emergency meeting per game: 30 s to vote for a suspect, or skip.</li>
+          <li><b>Crew wins</b> if the imposter is voted out (or leaves). <b>Imposter wins</b> by killing both crewmates.</li>
+          <li><b>Play again:</b> same room, the imposter role rotates, scores keep adding up.</li>
+        </ul>
+      </div>
+      <div class="glass points">
+        <h3>Every player has a personal score</h3>
+        <div class="ptable">
+          <span>Kill</span><b>+1</b><em>imposter</em>
+          <span>Vote for the imposter</span><b>+1</b><em>each correct voter</em>
+          <span>Crew wins</span><b>+2</b><em>every crewmate, alive or dead</em>
+          <span>Imposter wins</span><b>+3</b><em>imposter</em>
+        </div>
+        <p class="pfoot">End screen: the winning side, then a <b>ranking</b> sorted by points.</p>
+      </div>
+    </div>
+
+    <div class="feats" data-step="1">
+      <div class="glass feat"><h3>Registration &amp; login</h3><p>Name + password. Password stored as a scrypt hash; the player id is issued by the server.</p></div>
+      <div class="glass feat"><h3>Lobby &amp; rooms</h3><p>Create a room with a code. The room list is pushed to every client on each change.</p></div>
+      <div class="glass feat"><h3>Join &amp; leave</h3><p>The other players are told at once: <code>player:joined</code> / <code>player:left</code>.</p></div>
+      <div class="glass feat"><h3>Start &amp; end</h3><p>Only the host starts. Roles are sent privately. The server decides when it ends.</p></div>
+      <div class="glass feat"><h3>Real-time actions</h3><p>Positions 20 times per second, kills, meetings and votes, all checked by the server.</p></div>
+      <div class="glass feat"><h3>Scores &amp; results</h3><p>Points, ranking and winner, sent to every player in <code>game:ended</code>.</p></div>
+      <div class="glass feat"><h3>Disconnection</h3><p>Detected (FIN / RST, BYE, 5 s heartbeat) and cleaned up. The others keep playing.</p></div>
+      <div class="glass feat both"><h3>In both versions</h3><p>All 7 features, same rules and same messages. <b>Only the transport changes.</b></p></div>
+    </div>
+  </div>
+  <p class="say" hidden>First, the game, because it decides what the network has to carry. Three players. The server secretly picks one of them as the imposter; the other two are crewmates. The imposter can kill a crewmate who is close enough, at most once every ten seconds. Any living player can call one emergency meeting per game, and everyone alive then votes for a suspect or skips. The crew wins if the imposter is voted out; the imposter wins by killing both crewmates. So it is competitive: every player has a personal score. A kill is worth one point, voting for the imposter one point, a crew victory two points to every crewmate, and an imposter victory three points. The end screen shows the winner and a ranking, and when you play again the imposter role rotates and the scores add up. Below, the seven features the project requires: registration and login, lobby and rooms, joining and leaving, game start and end, real-time actions, scores, and disconnection handling. All seven exist in both versions, with the same rules and the same messages.</p>
+</section>
+
+<!-- ================= 4. ARCHITECTURE ================= -->
+<section class="slide s2" data-steps="1" data-hud="one game · transport swapped with --proto tcp|udp">
+  <div class="inner">
+    <header class="head"><p class="kicker">2 · Socket architecture</p><h2>Where the sockets live</h2></header>
+
+    <div class="arch">
+      <div class="client glass">
+        <p class="boxlabel">Client computer <b>×3</b></p>
+        <div class="layer">Game UI<small>browser tab · React + Phaser</small></div>
+        <div class="ipc"><span>loopback · stays on this PC</span></div>
+        <div class="layer strong">Local agent<small>Node.js · <code>web/agent.cjs</code></small>
+          <div class="socks"><code class="sock tcp">net.Socket</code><code class="sock udp">dgram.Socket</code></div>
+        </div>
+      </div>
+
+      <div class="wire">
+        <div class="wire-tcp" data-until="0">
+          <p class="wlabel t">TCP <b>:5000</b></p>
+          <div class="wpipe"><div class="wwalk"><code class="cap">{"type":"room:join"}\n</code><i class="crew walk" style="--c:var(--tcp);--w:56px"></i></div></div>
+          <p class="wnote">byte stream · one connection per client</p>
+        </div>
+        <div class="wire-udp" data-step="1">
+          <p class="wlabel u">UDP <b>:5001</b></p>
+          <div class="wdash"><div class="wwalk"><code class="cap">{"t":"MSG","seq":7}</code><i class="crew walk" style="--c:var(--udp);--w:56px"></i></div></div>
+          <p class="wnote">datagrams · no connection</p>
+        </div>
+      </div>
+
+      <div class="server glass">
+        <p class="boxlabel">Server computer</p>
+        <div class="layer strong">Game rules<small>events/*.js · identical in both versions · authoritative</small></div>
+        <pre class="iface">transport.on('connect')
+transport.on('message')
+transport.on('disconnect')
+transport.send(sessionId, type, data)</pre>
+        <div class="slot">
+          <div class="cart tcp"><code>tcpServer.js</code><span>net</span></div>
+          <div class="cart udp"><code>udpServer.js</code><span>dgram</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s2-lines">
+      <p class="callout">A web page cannot open raw TCP/UDP sockets. <b>A small local Node agent can</b>, so it owns the socket.</p>
+      <p class="callout big" data-step="1">The game rules never mention <code>net</code> or <code>dgram</code>. Clients ask; the server decides.</p>
+    </div>
+  </div>
+  <p class="say" hidden>Now the architecture. One server computer and three client computers. The game screen is a normal browser tab, and a web page is not allowed to open a raw TCP or UDP socket. So each client runs a small Node program next to the browser, the local agent, which owns the real socket. The tab talks to the agent over loopback, which never leaves the computer, so between computers there is only our own TCP or our own UDP traffic. A desktop Electron build exists too and works the same way. On the server, both transports offer exactly the same four operations: connect, message, disconnect and send. The game rules only use those four, so switching protocol means switching one file, chosen with --proto. That is how the two versions keep identical rules. And the server is authoritative: a client only asks, for example "I want to kill this player"; the server checks the role, the distance and the cooldown with its own data, and then tells everyone what happened.</p>
+</section>
+
+<!-- ================= 5. TCP ================= -->
+<section class="slide s4" data-steps="5" data-hud="TCP → :5000 · connected · reliability: OS TCP stack" data-race="5">
+  <div class="inner">
+    <header class="head"><p class="kicker t">3 · The TCP version</p><h2>TCP: a reliable stream… of bytes</h2></header>
+    <p class="lede"><b class="t">Server:</b> one listening socket on <code>0.0.0.0:5000</code>, then <b>one dedicated socket per client</b> = one session (<code>tcp-1</code>, <code>tcp-2</code>, <code>tcp-3</code>). A client counts as connected only after the server's <code>welcome</code> message.</p>
+
+    <div class="swap">
+      <div class="tcpcols" data-until="4">
+        <div class="glass os">
+          <h3>The OS does it</h3>
+          <p class="osnote">inside the kernel, invisible to our code</p>
+          <ul>
+            <li>3-way handshake<br><code>SYN · SYN-ACK · ACK</code></li>
+            <li>Sequence numbers</li>
+            <li>ACKs</li>
+            <li>Retransmission</li>
+            <li>In-order delivery</li>
+            <li><code>FIN</code> / <code>RST</code> on close</li>
+          </ul>
+        </div>
+        <div class="built">
+          <p class="builthead">We had to build</p>
+          <div class="tiles4">
+            <div class="glass tcp tile" data-step="1">
+              <h3><span>1</span>Framing</h3>
+              <div class="chunks"><code>{"type":"ro</code><code>oms:get"}<b>\n</b>{"ty</code><code>pe":"PING"}<b>\n</b></code></div>
+              <div class="msgs"><code>{"type":"rooms:get"}</code><code>{"type":"PING"}</code></div>
+              <p>TCP has no message boundaries. Our rule: one JSON object per line.</p>
+            </div>
+            <div class="glass tcp tile" data-step="2">
+              <h3><span>2</span>No Nagle delay</h3>
+              <code class="line">socket.setNoDelay(true)</code>
+              <div class="nagle"><span>default</span><code>m1 m2 m3</code><em>waits, one segment</em></div>
+              <div class="nagle"><span>ours</span><code>m1</code><code>m2</code><code>m3</code><em>each leaves at once</em></div>
+              <p>Small, frequent messages leave at once instead of waiting to be batched.</p>
+            </div>
+            <div class="glass tcp tile" data-step="3">
+              <h3><span>3</span>Heartbeat</h3>
+              <div class="beat"><code>PING</code><span class="beatline"><i></i></span><code>PONG</code></div>
+              <div class="ticks"><i>1 s</i><i>2 s</i><i>3 s</i><i>4 s</i><i>5 s</i><span>→ disconnected</span></div>
+              <p>Every 1 s. 5 s of silence = gone. A pulled cable sends nothing; TCP keep-alive would take about 2 hours.</p>
+            </div>
+            <div class="glass tcp tile" data-step="4">
+              <h3><span>4</span>Reconnect</h3>
+              <code class="line">ECONNREFUSED → retry in 2 s</code>
+              <div class="steps"><code class="dead">tcp-3</code><span>→</span><code>new SYN</code><span>→</span><code>welcome</code><span>→</span><code>tcp-4</code></div>
+              <p>A dead connection cannot be reused: new handshake, new session.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hol" data-step="5">
+        <p class="holtitle">Head-of-line blocking</p>
+        <p class="holsub">One lost segment holds back every newer position behind it.</p>
+        <div class="race glass tcp big" data-mode="tcp"></div>
+        <p class="holfoot">The newest position already makes the lost one useless. TCP delivers the old one first anyway. <kbd>L</kbd> toggles loss.</p>
+      </div>
+    </div>
+  </div>
+  <p class="say" hidden>In the TCP version the server opens one listening socket on port 5000. Every client that completes the three-way handshake gets its own dedicated socket, and that socket is the player's session. The first thing the server sends is a welcome message; only then does the client consider itself connected. The operating system does a lot for us: sequence numbers, acknowledgements, retransmission and in-order delivery all happen in the kernel, and our code never sees a lost packet. But four things were still our job. First, TCP is a stream of bytes, not of messages: one read can contain half a message, or two glued together, so we put exactly one JSON object per line. Second, Nagle's algorithm delays small writes to batch them, so we turn it off. Third, if a cable is pulled, nothing arrives to tell us, and TCP's keep-alive would take about two hours, so we added a one-second heartbeat with a five-second timeout. Fourth, a dead connection cannot be revived: the client opens a brand-new one every two seconds. And here is the price of reliability: every byte must arrive in order, so one lost position holds back all the newer ones behind it. That is head-of-line blocking.</p>
+</section>
+
+<!-- ================= 6. UDP (reliability + fast lane) ================= -->
+<section class="slide s5" data-steps="8" data-hud="UDP → :5001 · connected · seq + ACK + RTO are ours" data-seq="7" data-race="8">
+  <div class="inner">
+    <header class="head"><p class="kicker u">4 · The UDP version</p><h2>UDP: nothing is promised. So we built it.</h2></header>
+    <p class="lede"><b class="u">Server:</b> <b>one <code>dgram</code> socket on <code>0.0.0.0:5001</code> for every client.</b> A datagram only tells us the sender's <code>ip:port</code>, so a session = an address that completed our handshake, protected by a random token.</p>
+
+    <div class="swap">
+      <div class="raw" data-until="0">
+        <div class="raw3">
+          <div class="glass udp rawcard lost">
+            <div class="rawtrack"><code class="cap a">1</code><code class="cap b">2</code><code class="cap c">3</code></div>
+            <h3>Lost</h3>
+          </div>
+          <div class="glass udp rawcard dup">
+            <div class="rawtrack"><code class="cap a">1</code><code class="cap b">2</code><code class="cap c">2</code></div>
+            <h3>Duplicated</h3>
+          </div>
+          <div class="glass udp rawcard reo">
+            <div class="rawtrack"><code class="cap a">2</code><code class="cap b">1</code><code class="cap c">3</code></div>
+            <h3>Reordered</h3>
+          </div>
+        </div>
+        <p class="rawline">No connection. No delivery guarantee. No order. No goodbye.</p>
+      </div>
+
+      <div class="tiles6" data-step="1" data-until="6">
+        <div class="glass udp tile" data-step="1"><h3><span>1</span>Handshake + token</h3>
+          <code class="line">{"t":"HELLO"}</code><code class="line">{"t":"WELCOME","tok":"9f2c…"}</code>
+          <p>HELLO every 1 s until WELCOME. The token is in every later datagram.</p></div>
+        <div class="glass udp tile" data-step="2"><h3><span>2</span>Seq + ACK</h3>
+          <code class="line">{"t":"MSG","seq":7,"type":…}</code><code class="line">{"t":"ACK","seq":7}</code>
+          <p>Every reliable message is numbered and acknowledged.</p></div>
+        <div class="glass udp tile" data-step="3"><h3><span>3</span>Retransmit</h3>
+          <code class="line">RTO = 2 × SRTT · 100–1000 ms</code><code class="line">SRTT = 0.875·SRTT + 0.125·sample</code>
+          <p>The timeout adapts to the measured RTT (Karn's rule: only messages sent once).</p></div>
+        <div class="glass udp tile" data-step="4"><h3><span>4</span>Dedupe</h3>
+          <code class="line">seq &lt; expectedSeq → ACK, ignore</code>
+          <p>A duplicate usually means our ACK was lost: ACK again, never deliver twice.</p></div>
+        <div class="glass udp tile" data-step="5"><h3><span>5</span>Order</h3>
+          <code class="line">seq 8 waits for seq 7</code>
+          <p>Early arrivals wait in a buffer, then 7 and 8 are delivered together.</p></div>
+        <div class="glass udp tile" data-step="6"><h3><span>6</span>Give up</h3>
+          <code class="line">25 resends ≈ 2.6 s on a LAN</code><code class="line">or 5 s of silence</code>
+          <p>Two detectors: whichever fires first declares the peer dead.</p></div>
+      </div>
+
+      <div class="hero" data-step="7" data-until="7">
+        <div class="glass udp seq" id="seq">
+          <div class="seqhead"><code>Client · dgram</code><code>Server · dgram :5001</code></div>
+          <div class="sr to" data-p="1"><span class="nl"></span>
+            <div class="ar"><code>{"t":"MSG","seq":1,"type":"player:register"}</code><i></i></div>
+            <span class="nr ok">delivered to the game</span></div>
+          <div class="sr back lost" data-p="2"><span class="nl bad">the ACK never arrives</span>
+            <div class="ar"><code>{"t":"ACK","seq":1} <em>was ejected.</em></code><i></i></div>
+            <span class="nr"></span></div>
+          <div class="sr wait" data-p="3"><span class="nl warn">no ACK within the RTO<b class="rto"><i></i></b></span>
+            <div class="ar none"></div><span class="nr"></span></div>
+          <div class="sr to rt" data-p="4"><span class="nl warn">resend</span>
+            <div class="ar"><code>{"t":"MSG","seq":1,…} <em>retransmission</em></code><i></i></div>
+            <span class="nr">already delivered: ignored, ACKed again</span></div>
+          <div class="sr back" data-p="5"><span class="nl ok">acknowledged</span>
+            <div class="ar"><code>{"t":"ACK","seq":1}</code><i></i></div>
+            <span class="nr"></span></div>
+        </div>
+        <div class="glass counters">
+          <h3>ReliableChannel counters</h3>
+          <dl>
+            <dt>reliableSent</dt><dd data-c="sent">0</dd>
+            <dt>retransmits</dt><dd data-c="rt">0</dd>
+            <dt>duplicatesIgnored</dt><dd data-c="dup">0</dd>
+            <dt>acksReceived</dt><dd data-c="ack">0</dd>
+          </dl>
+          <p>Delivered exactly once, in order, over a transport that promised nothing.</p>
+        </div>
+      </div>
+
+      <div class="fastlane" data-step="8">
+        <div class="lanes2">
+          <div class="glass udp lanecard">
+            <h3>Reliable lane <code>MSG</code></h3>
+            <p class="what">register · join · start · kill · vote · game end</p>
+            <code class="line">{"t":"MSG","seq":7,"type":"player:kill",…}</code>
+            <p>Must arrive, once, in order.</p>
+          </div>
+          <div class="glass udp lanecard fast">
+            <h3>Fast lane <code>FAST</code></h3>
+            <p class="what">positions only · 20 per second</p>
+            <code class="line">{"t":"FAST","n":345,"type":"player:move",…}</code>
+            <p>No seq, no ACK, never resent. Older than the last <code>n</code> seen from that player → dropped.</p>
+          </div>
+        </div>
+        <div class="races">
+          <div class="race glass tcp" data-mode="tcp"></div>
+          <div class="race glass udp" data-mode="udp"></div>
+          <p class="racefoot">Same loss on both lanes. A lost position is replaced 50 ms later: resending it would deliver the past. <kbd>L</kbd> toggles loss.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="say" hidden>UDP promises nothing: a datagram can be lost, duplicated or reordered, and nobody tells you when the other side is gone. The server has one single socket for all players, and a datagram only tells us the sender's IP and port, so we built sessions ourselves. The client sends HELLO every second until the server answers WELCOME with a session id and a random token; every later datagram must carry that token, so faking someone's address is not enough to play as them. Then reliability, in one file used by both sides. Every important message gets a sequence number and must be acknowledged. If the ACK does not come back within the retransmission timeout, we resend. That timeout adapts: twice the smoothed round-trip time, kept between 100 milliseconds and one second, and, like TCP, we only measure the round trip on messages sent once: that is Karn's rule. Duplicates are acknowledged again but never delivered twice, and early arrivals wait until the gap is filled. A peer is declared dead after 25 resends without an answer, which is about 2.6 seconds on a LAN, or after 5 seconds of silence, whichever comes first. In this animation the ACK is lost: the client resends, the server recognises the duplicate, acknowledges it again, and does not deliver it twice. And the deliberate choice: positions skip all of this. They travel on a fast lane, 20 per second, never resent. With the same loss on both lanes, TCP freezes player two's screen until the old position is recovered, while UDP simply shows the next one 50 milliseconds later.</p>
+</section>
+
+<!-- ================= 7. LIVE DEMO ================= -->
+<section class="slide sd" data-steps="1" data-hud="live demo · 1 server + 3 clients · 4 computers">
+  <div class="inner">
+    <header class="head"><p class="kicker">5 · Live demonstration</p><h2>Same script, played twice</h2></header>
+    <div class="demo">
+      <div class="glass script">
+        <ol>
+          <li><b>Register / log in</b><span>name + password; a wrong password is refused</span></li>
+          <li><b>Create a room</b><span>it appears in every lobby at once</span></li>
+          <li><b>Join and leave</b><span>the other players are told</span></li>
+          <li><b>Start</b><span>host only; each player privately learns their role</span></li>
+          <li><b>Play</b><span>move, kill, emergency meeting, vote</span></li>
+          <li><b>End</b><span>winning side, points and ranking; play again</span></li>
+          <li><b>Disconnect</b><span>stop one client: TCP sees it at once, UDP after ~5 s</span></li>
+        </ol>
+      </div>
+      <div class="demoright">
+        <div class="druns">
+          <div class="glass tcp drun"><h3>Run 1 · TCP :5000</h3><code class="line">server&gt; npm run tcp</code><code class="line">client&gt; npm run tcp -- --server &lt;ip&gt;</code></div>
+          <div class="glass udp drun" data-step="1"><h3>Run 2 · UDP :5001</h3><code class="line">server&gt; npm run udp</code><code class="line">client&gt; npm run udp -- --server &lt;ip&gt;</code></div>
+        </div>
+        <div class="seats">
+          <div class="glass seat"><i class="crew" style="--c:#7FA8FF;--w:58px"></i><div><small>Server PC</small><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Israa Daassi</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#E8EDFF;--w:58px"></i><div><small>Client 1</small><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#B79CFF;--w:58px"></i><div><small>Client 2</small><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#FF8AD8;--w:58px"></i><div><small>Client 3</small><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div></div>
+        </div>
+        <p class="callout">Watch the HUD (<kbd>F3</kbd>), the server log and Wireshark: <code>tcp.port == 5000</code> · <code>udp.port == 5001</code> · in the UDP run, the filter <code>tcp</code> shows nothing from the game.</p>
+      </div>
+    </div>
+  </div>
+  <p class="say" hidden>Now the live part. One computer runs the server and the other three are players. We play the same script twice: first on TCP, then on UDP. We register, including one wrong password, create a room, join and leave it, start the game, move, kill, call a meeting, vote, and read the ranking at the end. Then we stop one client to show the disconnection: in TCP the server knows immediately, in UDP it needs about five seconds of silence. Keep an eye on three things: the server log, which shows every session and message; the HUD in the corner of each client, which in the UDP run shows our own retransmissions and duplicates; and Wireshark, where, during the UDP run, the filter tcp shows nothing from the game at all.</p>
+</section>
+
+<!-- ================= 8. SIMULTANEOUS PLAYERS + DISCONNECTIONS ================= -->
+<section class="slide s3 s7" data-steps="6" data-hud="3 clients at once · heartbeat 1 s · timeout 5 s · both versions">
+  <div class="inner">
+    <header class="head"><p class="kicker bad">6 · Simultaneous players &amp; disconnections</p><h2>Three at once. Then one leaves.</h2></header>
+
+    <div class="swap">
+      <div class="simpart" data-until="3">
+        <div class="duo">
+          <div class="glass tcp sim">
+            <p class="simtitle"><b>TCP</b> one listening socket + one socket <em>per client</em></p>
+            <div class="simgrid">
+              <div class="cl"><i class="crew" style="--c:#E8EDFF;--w:66px"></i><code>client 1</code></div>
+              <div class="ln"><span></span></div>
+              <code class="sk">socket · tcp-1</code>
+              <div class="cl"><i class="crew" style="--c:#B79CFF;--w:66px"></i><code>client 2</code></div>
+              <div class="ln"><span></span></div>
+              <code class="sk">socket · tcp-2</code>
+              <div class="cl"><i class="crew" style="--c:#FF8AD8;--w:66px"></i><code>client 3</code></div>
+              <div class="ln"><span></span></div>
+              <code class="sk">socket · tcp-3</code>
+            </div>
+            <p class="simfoot">Session = the accepted connection.</p>
+          </div>
+
+          <div class="glass udp sim">
+            <p class="simtitle"><b>UDP</b> one socket for <em>everyone</em></p>
+            <div class="simgrid one">
+              <div class="cl"><i class="crew" style="--c:#E8EDFF;--w:66px"></i><code>client 1</code></div>
+              <div class="cl"><i class="crew" style="--c:#B79CFF;--w:66px"></i><code>client 2</code></div>
+              <div class="cl"><i class="crew" style="--c:#FF8AD8;--w:66px"></i><code>client 3</code></div>
+              <svg class="conv" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0 17 L100 50"/><path d="M0 50 L100 50"/><path d="M0 83 L100 50"/>
+              </svg>
+              <code class="sk big">one socket<br>:5001</code>
+            </div>
+            <p class="simfoot">Session = remote <code>ip:port</code> after HELLO → WELCOME, + token.</p>
+          </div>
+        </div>
+
+        <div class="facts">
+          <div class="glass fact" data-step="1">
+            <h3>Broadcast = one send per player</h3>
+            <p>Neither protocol has rooms. A room of 3 is 3 TCP writes, or 3 datagrams.</p>
+          </div>
+          <div class="glass fact" data-step="2">
+            <h3>One event loop, no locks</h3>
+            <p>Two actions at the same instant are two events, handled one after the other. No race conditions.</p>
+          </div>
+          <div class="glass fact" data-step="3">
+            <h3>Identity comes from the session</h3>
+            <p>Never from the payload. A forged kill or a fake player id is refused.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="dpart" data-step="4">
+        <div class="glass dtable">
+          <div class="drow dhead"><span>What happened</span><span class="t">TCP</span><span class="u">UDP</span></div>
+          <div class="drow"><span>Player quits normally</span>
+            <div class="bar t" style="--sec:.1"><i></i><b>~0 s</b><em>FIN</em></div>
+            <div class="bar u" style="--sec:.1"><i></i><b>~0 s</b><em>BYE · 5 s if the BYE is lost</em></div></div>
+          <div class="drow"><span>Client process crashes</span>
+            <div class="bar t" style="--sec:.02"><i></i><b>~0 s</b><em>the OS sends RST</em></div>
+            <div class="bar u" style="--sec:5"><i></i><b>5.0 s</b><em>only silence · 3.1 s at 20% loss</em></div></div>
+          <div class="drow"><span>Server killed, seen by clients</span>
+            <div class="bar t" style="--sec:.2"><i></i><b>0.2 s</b><em>connection reset</em></div>
+            <div class="bar u" style="--sec:5.1"><i></i><b>5.1 s</b><em>silence</em></div></div>
+          <div class="drow"><span>Cable pulled (silent drop)</span>
+            <div class="bar t" style="--sec:5.4"><i></i><b>5.4 s</b><em>our heartbeat</em></div>
+            <div class="bar u" style="--sec:5.1"><i></i><b>5.1 s</b><em>our detectors</em></div></div>
+          <div class="drow"><span>Network back</span>
+            <div class="bar t" style="--sec:1.7"><i></i><b>1.7 s</b><em>new connection, new session</em></div>
+            <div class="bar u" style="--sec:1"><i></i><b>1.0 s</b><em>new HELLO → WELCOME</em></div></div>
+          <p class="dsrc">Measured with <code>tools/smoke-client.cjs</code> on one PC, 13 Nov 2026 · 38 of 38 checks pass on TCP, on UDP, and on UDP with 20% loss</p>
+        </div>
+
+        <div class="chain" data-step="5">
+          <span class="chainlabel">Then, in both versions:</span>
+          <span class="chip">remove from room</span><span class="chip">tell the others · <code>player:left</code> + reason</span><span class="chip">pass the host role</span><span class="chip">close the meeting</span><span class="chip">end the game if a side won</span><span class="chip">client reconnects by itself</span>
+        </div>
+        <p class="takeaway" data-step="6">TCP knows at once when the OS can tell it. For a silent failure, <b>both need our heartbeat.</b></p>
+      </div>
+    </div>
+  </div>
+  <p class="say" hidden>Let's look closer at what you just saw. Three players act at the same time. TCP gives the server one socket per player, and that connection is the session. UDP uses a single socket for everybody, and the server tells players apart by their address plus their token. Sending to a room is not magic in either case: three players means three separate sends. Node handles every client on one event loop, so if a kill and a vote arrive at the same instant, they are two events processed one after the other, and the second is checked against the new state. No locks, no race conditions. And the server always decides who you are from your session, never from what your message claims. Now, disconnections, where the protocols really differ. When a client process crashes, TCP knows immediately, because the operating system resets the connection. UDP has no connection, so only silence reveals it: five seconds, or about three seconds when messages are waiting for an acknowledgement. When a cable is pulled, nobody sends anything, so both versions rely on our heartbeat. Whatever the cause, the same game code runs: the player is removed, the others are told why, the host role moves on, an open meeting is closed if they were the last voter, and if the imposter left, the crew wins. Nothing crashes, and the disconnected client reconnects by itself.</p>
+</section>
+
+<!-- ================= 9. EDGE CASES ================= -->
+<section class="slide se" data-steps="3" data-hud="server-authoritative · every rule checked on the server">
+  <div class="inner">
+    <header class="head"><p class="kicker">7 · Edge cases &amp; inconsistencies</p><h2>What could break, and why it doesn't</h2></header>
+
+    <div class="edge">
+      <div class="glass ecol" style="--p:#A99BFF" data-step="1">
+        <h3>Game rules</h3>
+        <ul>
+          <li>The imposter's identity is never in a public message; each role is sent <b>privately</b>.</li>
+          <li>A kill is checked on the server: role, both alive, no meeting, 10 s cooldown, distance from the <b>server's</b> positions.</li>
+          <li>A position outside the map is clamped; a move faster than walking speed is rejected and corrected, with a small tolerance for network jitter.</li>
+          <li>One meeting per player per game. Dead players cannot vote. Votes stay hidden until the end. A tie ejects nobody.</li>
+          <li>Joining is refused if the game started, the room is full or the name is taken; a taken color is swapped for a free one.</li>
+        </ul>
+      </div>
+      <div class="glass ecol" style="--p:var(--ack)" data-step="2">
+        <h3>Sessions &amp; network</h3>
+        <ul>
+          <li>The same account cannot play from two clients at once; a player id inside a message is ignored.</li>
+          <li>The leaver was the last voter → the meeting ends now. The host leaves → a new host is announced. The imposter leaves → crew wins.</li>
+          <li>Password check runs off the main thread; if the client vanished meanwhile, the reply is dropped.</li>
+          <li>UDP: a HELLO from a known address = the client restarted → fresh session. A wrong token → dropped, and it does not count as a heartbeat.</li>
+          <li>Bad JSON, unknown message types, an error in one handler: logged and ignored. The server never crashes.</li>
+        </ul>
+      </div>
+      <div class="glass ecol" style="--p:var(--warn)" data-step="3">
+        <h3>Known limits</h3>
+        <ul>
+          <li>A reconnecting player goes back to the menu; they cannot resume a game in progress.</li>
+          <li>A player who leaves is removed from the final ranking, together with their score.</li>
+          <li>UDP: 25 resends take only ≈ 2.6 s on a LAN, so a short Wi-Fi hiccup can drop a player sooner than the 5 s heartbeat would. Next step: exponential backoff.</li>
+          <li>Our UDP layer does not split messages: one over 1200 bytes would rely on IP fragmentation (ours stay well below).</li>
+          <li>Rooms live in memory: restarting the server ends all games. Accounts are saved on disk.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="takeaway">Every rule is checked on the server, so <b>one broken or malicious client cannot break the game for the others.</b></p>
+  </div>
+  <p class="say" hidden>The project we started from trusted the clients completely. Our first test with three scripted clients found sixteen defects: the imposter's identity was in the public room list, a crewmate could kill, anyone could rename another player or end a meeting, and a position of x equals ninety-nine thousand was accepted. Today the server checks every rule with its own data. Roles are sent privately. A kill is checked for role, cooldown and distance, using the server's copy of the positions. A move that goes off the map or too fast is corrected, with a small tolerance so that normal network jitter does not punish honest players. Meetings, votes and room joins have their own rules. On the network side, we covered the awkward timings: the last voter leaving, the host leaving, the imposter leaving, a client restarting in UDP, a stale packet from an old session, or a client disconnecting while its password is being checked. And here is what we know is not perfect. A reconnecting player cannot resume a running game. A player who leaves disappears from the ranking. And in UDP, because the retry timer has no backoff yet, a short Wi-Fi hiccup can disconnect a player a little sooner than in TCP. We know why, and how we would fix it.</p>
+</section>
+
+<!-- ================= 10. MEASURED COMPARISON ================= -->
+<section class="slide s8" data-steps="4" data-hud="metrics: detection time · loss · counters · bytes · code size">
+  <div class="inner">
+    <header class="head"><p class="kicker">8 · TCP vs UDP, measured</p><h2>Same game. Different behaviour.</h2></header>
+
+    <div class="swap">
+      <div class="cmp" data-until="1">
+        <div class="glass board">
+          <div class="brow bhead"><span></span><span class="t">TCP</span><span class="u">UDP</span></div>
+          <div class="brow"><span>Connection</span><span>3-way handshake by the OS</span><span>our HELLO → WELCOME + token</span></div>
+          <div class="brow"><span>Boundaries</span><span>none: we add <code>\n</code> framing</span><span>built in: one message per datagram</span></div>
+          <div class="brow"><span>Reliability</span><span>OS TCP stack, invisible to us</span><span>ours: seq, ACK, adaptive RTO, dedupe, order</span></div>
+          <div class="brow"><span>Positions</span><span>reliable: head-of-line blocking</span><span>unreliable on purpose: newest wins</span></div>
+          <div class="brow"><span>Crash seen</span><span>~0 s (RST)</span><span>5.0 s (silence) · 3.1 s at 20% loss</span></div>
+          <div class="brow"><span>20% loss</span><span>repaired by the OS: positions stall instead <small>(bytes cannot be dropped inside a stream)</small></span><span>full game, 38/38 checks; 37–41% of positions lost, still playable</span></div>
+          <div class="brow"><span>Bytes, one client</span><span>20.7 KB out · 72.8 KB in</span><span>43.7 KB out · 111.6 KB in <small>(token, envelope, ACKs)</small></span></div>
+          <div class="brow"><span>Code we wrote</span><span>≈ 400 lines of transport</span><span>≈ 640 lines of transport</span></div>
+        </div>
+
+        <div class="glass hudpanel" data-step="1">
+          <h3>Counters at 20% loss</h3>
+          <code class="hudline u">UDP · 2 clients, same scripted game<br>retransmits      14 · 6<br>duplicates       16 · 20<br>out-of-order      9 · 12<br>positions lost  41% · 37%</code>
+          <p>Smoke test, 13 Nov 2026. Theory for 20% each side: 1 − 0.8² = 36% lost.</p>
+          <code class="hudline t">TCP · nothing to count<br>reliability: OS TCP stack</code>
+          <div class="rtt">
+            <div><small>RTT on the LAN · TCP</small><b class="t"><span class="edit" data-edit="rtt-tcp" contenteditable="true" spellcheck="false">__</span> ms</b></div>
+            <div><small>RTT on the LAN · UDP</small><b class="u"><span class="edit" data-edit="rtt-udp" contenteditable="true" spellcheck="false">__</span> ms</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcwrap" data-step="2">
+        <div class="pc">
+          <div class="glass tcp pccol">
+            <h3>TCP</h3>
+            <div class="pro"><h4>Advantages</h4><ul>
+              <li>Reliability and order done by the OS</li>
+              <li>Quit and crash seen at once (FIN / RST)</li>
+              <li>Less code to write and debug</li>
+              <li>Built-in flow and congestion control</li>
+              <li>Smaller messages in our design</li>
+            </ul></div>
+            <div class="con"><h4>Drawbacks</h4><ul>
+              <li>No message boundaries: we frame</li>
+              <li>Nagle delays small writes</li>
+              <li>Head-of-line blocking on positions</li>
+              <li>A dead peer is silent: needs a heartbeat</li>
+              <li>Reconnect = new handshake, new session</li>
+            </ul></div>
+          </div>
+          <div class="glass udp pccol">
+            <h3>UDP</h3>
+            <div class="pro"><h4>Advantages</h4><ul>
+              <li>One message = one datagram</li>
+              <li>Reliability chosen per message</li>
+              <li>No head-of-line blocking for positions</li>
+              <li>One socket for every player</li>
+              <li>We control every timer</li>
+            </ul></div>
+            <div class="con"><h4>Drawbacks</h4><ul>
+              <li>Sessions, ACKs, order, liveness: all ours</li>
+              <li>A crash is seen only through silence</li>
+              <li>No congestion control</li>
+              <li>Bigger messages: token, envelope, ACKs</li>
+              <li>Source address can be faked → token</li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="verdicts" data-step="3">
+          <div class="glass tcp verdict"><h3>TCP performed best at</h3><p>login, lobby, rooms, kills, votes, scores: everything that must arrive.</p></div>
+          <div class="glass udp verdict"><h3>UDP performed best at</h3><p>movement under loss: a lost position costs 50 ms, not a freeze.</p></div>
+        </div>
+        <p class="takeaway" data-step="4">Reliable for events. <b>Unreliable for state that expires.</b></p>
+      </div>
+    </div>
+  </div>
+  <p class="say" hidden>We compared the two versions with metrics we chose ourselves. Detection: a crashed client is seen instantly in TCP, and after up to five seconds in UDP. Behaviour under loss: with 20 percent of the datagrams dropped on every side, the UDP version still finished a complete game and passed all 38 checks. Each client repaired its events with a handful of retransmissions, ignored around twenty duplicates and reordered about ten messages, while 37 to 41 percent of positions were simply lost, which matches the theory of two independent 20-percent losses. The game stayed playable because the next position always arrives 50 milliseconds later. In TCP we cannot drop bytes from inside a stream; the operating system repairs the loss, and the cost shows up as a stall instead. UDP also cost us: our messages are bigger, because each datagram carries the token, its own envelope and separate ACKs, and we wrote about 60 percent more transport code. Next, the advantages and drawbacks side by side. Our verdict: TCP is the better fit for everything that must arrive, with simpler code and instant crash detection. UDP wins for movement, because on a lossy network a lost position costs one frame instead of freezing everything behind it. Reliable for events, unreliable for state that expires.</p>
+</section>
+
+<!-- ================= 11. CHALLENGES + OPTIMIZATIONS ================= -->
+<section class="slide s9" data-steps="7" data-hud="challenges → fixes → optimizations">
+  <div class="inner">
+    <header class="head"><p class="kicker bad">9 · Challenges &amp; optimizations</p><h2>What broke, and how we fixed it</h2></header>
+
+    <div class="swap">
+      <div class="fix6" data-until="6">
+        <div class="glass fx" data-fx="1"><h3>Libraries hid the sockets</h3>
+          <p class="before">Socket.IO + Express + fetch: all TCP underneath.</p>
+          <p class="after">Removed all of it. Only Node <code>net</code> and <code>dgram</code>.</p></div>
+        <div class="glass fx" data-fx="2"><h3>The browser sandbox</h3>
+          <p class="before">The game is a web page. Pages cannot open raw sockets.</p>
+          <p class="after">A local Node agent owns the socket; the page talks to it over loopback.</p></div>
+        <div class="glass fx" data-fx="3"><h3>Trusting the client</h3>
+          <p class="before">Player id in the payload; the imposter visible to everyone. 16 defects found.</p>
+          <p class="after">Identity from the session. Roles private. The server validates every action.</p></div>
+        <div class="glass fx" data-fx="4"><h3>Flooding the wire</h3>
+          <p class="before">A position on every rendered frame: 60 to 144 per second.</p>
+          <p class="after">20 per second moving, 2 idle, no echo. Remote players glide.</p></div>
+        <div class="glass fx" data-fx="5"><h3>Silent peers</h3>
+          <p class="before">"Connected" meant the socket opened. A silent peer stayed forever.</p>
+          <p class="after">welcome + PING/PONG every 1 s, 5 s timeout, automatic reconnect.</p></div>
+        <div class="glass fx" data-fx="6"><h3>UDP promised nothing</h3>
+          <p class="before">Datagrams lost, duplicated, reordered; source address can be faked.</p>
+          <p class="after">seq + ACK + adaptive RTO + dedupe + order + session token.</p></div>
+      </div>
+
+      <div class="opts" data-step="7">
+        <div class="glass opt"><b>60–144 → 20</b><span>positions per second while moving; 2 when idle; sent at once on start / stop</span></div>
+        <div class="glass opt"><b>−⅓</b><span>position traffic: relayed only to the <em>other</em> players, never echoed back</span></div>
+        <div class="glass opt"><b>30% / frame</b><span>remote players glide toward the last position; snap beyond 200 px</span></div>
+        <div class="glass opt"><b>push</b><span>the lobby list is pushed on every change, never polled</span></div>
+        <div class="glass tcp opt"><b class="t">no Nagle</b><span>TCP: <code>setNoDelay(true)</code>, small messages leave immediately</span></div>
+        <div class="glass udp opt"><b class="u">2 × RTT</b><span>UDP: the retransmission timeout adapts to the measured round trip</span></div>
+        <div class="glass udp opt"><b class="u">&lt; 1200 B</b><span>UDP: every datagram below the MTU, no IP fragmentation</span></div>
+        <div class="glass opt"><b>off-thread</b><span>password hashing never pauses the game for the other players</span></div>
+      </div>
+    </div>
+    <div class="fxwalk" aria-hidden="true" data-until="6"><i class="crew walk" style="--c:var(--ack);--w:60px"></i></div>
+  </div>
+  <p class="say" hidden>These are the challenges we faced. The project we started from used Socket.IO, Express and fetch, so everything ran over HTTP and WebSocket: TCP underneath, with the sockets hidden. We removed all of it. A web page cannot open raw sockets, so a small local agent owns them. The old code trusted the player id written in each message and showed the imposter to everyone, so we bound identity to the session and made the server check every action. Positions were sent on every rendered frame, up to 144 times per second, so we limited them to 20. A silent peer used to stay connected forever, so we added a heartbeat. And UDP promised nothing, so we built sequence numbers, acknowledgements, an adaptive timeout, ordering and a session token. Then the optimizations, with their numbers: 20 positions per second instead of up to 144, and only 2 when standing still; no echo, which removes a third of the position traffic; smooth gliding between updates; a lobby list that is pushed instead of polled; no Nagle delay in TCP; an adaptive timeout and small datagrams in UDP; and password hashing that never pauses the game. The hardest part was not writing sockets: it was discovering what the libraries had been doing for us.</p>
+</section>
+
+<!-- ================= 12. BONUS + CLOSE ================= -->
+<section class="slide s10" data-steps="1" data-hud="bonus: cross-network over Tailscale · 100.x.y.z">
+  <div class="inner">
+    <div class="swap full">
+      <div class="bonus" data-until="0">
+        <header class="head"><p class="kicker">Bonus challenge</p><h2>Four laptops, different networks</h2></header>
+        <div class="nodes">
+          <div class="glass node"><b>Server</b><span class="edit" data-edit="net0" contenteditable="true" spellcheck="false">network A</span></div>
+          <div class="glass node"><i class="crew" style="--c:#E8EDFF;--w:50px"></i><b>Client 1</b><span class="edit" data-edit="net1" contenteditable="true" spellcheck="false">network B</span></div>
+          <div class="glass node"><i class="crew" style="--c:#B79CFF;--w:50px"></i><b>Client 2</b><span class="edit" data-edit="net2" contenteditable="true" spellcheck="false">network C</span></div>
+          <div class="glass node"><i class="crew" style="--c:#FF8AD8;--w:50px"></i><b>Client 3</b><span class="edit" data-edit="net3" contenteditable="true" spellcheck="false">network D</span></div>
+        </div>
+        <div class="tunnel"><span>Tailscale overlay VPN · one private network on top of four real ones</span></div>
+        <div class="facts">
+          <div class="glass fact"><h3>Tailscale on all 4 laptops</h3><p>Each gets a <code>100.x.y.z</code> address the others can reach.</p></div>
+          <div class="glass fact"><h3>Server bound to 0.0.0.0</h3><p>It listens on every interface: Wi-Fi, Ethernet and the tunnel.</p></div>
+          <div class="glass fact"><h3>Direct path checked</h3><p><code>tailscale ping</code>: direct = our UDP stays UDP. A DERP relay would carry it inside TCP.</p></div>
+        </div>
+        <p class="status">Status: <span class="edit" data-edit="bonus" contenteditable="true" spellcheck="false">planned, not yet demonstrated</span></p>
+      </div>
+
+      <div class="closing" data-step="1">
+        <p class="closeline"><span class="t">TCP gives you a promise.</span><br><span class="u">UDP gives you a choice.</span></p>
+        <div class="parade" aria-hidden="true">
+          <i class="crew walk" style="--c:var(--tcp)"></i><i class="crew walk" style="--c:var(--tcp)"></i><i class="crew walk" style="--c:var(--tcp)"></i>
+          <i class="crew walk" style="--c:#E8EDFF"></i><i class="crew walk" style="--c:#B79CFF"></i><i class="crew walk" style="--c:#FF8AD8"></i>
+          <i class="crew walk" style="--c:var(--udp)"></i><i class="crew walk" style="--c:var(--udp)"></i><i class="crew walk" style="--c:var(--udp)"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="say" hidden>For the bonus, cross-network play, our setup is Tailscale on all four laptops. It builds one private network on top of the four real ones and gives each laptop an address the others can reach. The server already listens on every interface, so the game code needs no change, and our datagrams are small enough for the tunnel. One caution: when Tailscale cannot find a direct path, it relays the traffic through a server over TCP, which would hide our UDP; we check the path with tailscale ping before playing. To close: TCP gives you a promise, and you pay for it with head-of-line blocking. UDP gives you a choice, and you pay for it with code.</p>
+</section>
+
+<!-- ================= THANK YOU ================= -->
+<section class="slide sty" data-steps="0" data-hud="thank you · questions welcome">
+  <div class="inner">
+    <p class="kicker">Among Us Arena · one game, two transports</p>
+    <h1>Thank you.</h1>
+    <p class="sub">Questions?</p>
+    <div class="tyteam">
+      <div class="member"><i class="crew walk" style="--c:#7FA8FF;--w:120px"></i><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Israa Daassi</span></div>
+      <div class="member"><i class="crew walk" style="--c:#E8EDFF;--w:120px"></i><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div>
+      <div class="member"><i class="crew walk" style="--c:#B79CFF;--w:120px"></i><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div>
+      <div class="member"><i class="crew walk" style="--c:#FF8AD8;--w:120px"></i><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div>
+    </div>
+    <p class="tyfoot"><span class="t">TCP :5000</span> · <span class="u">UDP :5001</span> · Node net + dgram only · run instructions: README §5 (TCP) and §6 (UDP)</p>
+  </div>
+  <p class="say" hidden>Thank you for listening. The source code and the instructions to run both versions are in the repository README. We are happy to take your questions, and we can open any slide, any file, the server log or a Wireshark capture to answer them.</p>
+</section>
+
+<!-- ================= BACKUP: network weaknesses (for questions) ================= -->
+<section class="slide sw" data-steps="2" data-hud="backup · weakness → what we did · TCP only / UDP only">
+  <div class="inner">
+    <header class="head"><p class="kicker bad">Backup · network weaknesses we faced</p><h2>Each protocol hurt us differently</h2></header>
+    <div class="wkcols">
+      <div class="glass tcp wkcol">
+        <p class="wkhead"><b>TCP only</b><span>net · the OS is reliable for us, but rigid</span></p>
+        <div class="wk"><h3>No message boundaries</h3><p class="why">One read can hold half a message, or two glued together.</p><p class="fix" data-step="1">Newline framing: one JSON object per line, safe for split UTF-8.</p></div>
+        <div class="wk"><h3>Nagle delays small writes</h3><p class="why">Small, frequent game messages wait to be batched.</p><p class="fix" data-step="1"><code>setNoDelay(true)</code>: every message leaves at once.</p></div>
+        <div class="wk"><h3>Head-of-line blocking</h3><p class="why">One lost segment freezes every newer position behind it.</p><p class="fix" data-step="1">Cannot be removed, so we shrink it: 20 Hz instead of every frame, and the receiver glides.</p></div>
+        <div class="wk"><h3>A dead peer is silent</h3><p class="why">A pulled cable sends nothing; keep-alive needs about 2 hours.</p><p class="fix" data-step="1">PING / PONG every 1 s, 5 s timeout, reconnect every 2 s.</p></div>
+      </div>
+      <div class="glass udp wkcol">
+        <p class="wkhead"><b>UDP only</b><span>dgram · fast and free, but nothing is guaranteed</span></p>
+        <div class="wk"><h3>Datagrams get lost</h3><p class="why">A kill or a vote may simply never arrive.</p><p class="fix" data-step="2">seq + ACK + resend; the timeout adapts: RTO = 2 × measured RTT.</p></div>
+        <div class="wk"><h3>Duplicates and reordering</h3><p class="why">The same event twice, or seq 8 before seq 7.</p><p class="fix" data-step="2">Dedupe by seq, and a buffer that delivers in order.</p></div>
+        <div class="wk"><h3>No connection, no goodbye</h3><p class="why">Who is this packet from? Is the other side still there?</p><p class="fix" data-step="2">HELLO → WELCOME sessions by <code>ip:port</code> + token, BYE, 5 s heartbeat.</p></div>
+        <div class="wk"><h3>Resends can make it worse</h3><p class="why">Hammering a stalled network; big datagrams get fragmented.</p><p class="fix" data-step="2">RTO floor of 100 ms, positions never resent, datagrams under 1200 bytes.</p></div>
+      </div>
+    </div>
+  </div>
+  <p class="say" hidden>Backup slide for questions: the network weaknesses of each protocol and what we did about each one. TCP: no message boundaries, Nagle's delay, head-of-line blocking, and silent dead peers. UDP: lost datagrams, duplicates and reordering, no connection and no goodbye, and the risk of making a bad network worse with resends or oversized datagrams.</p>
+</section>
+
+<footer class="hud">
+  <span id="hud-l"></span>
+  <span class="hud-r">← → · 1–0 jump · End · N notes · L loss · <button id="pause" type="button">P pause</button> · F full</span>
+</footer>
+<aside class="notes glass" id="notes" hidden></aside>
+
+</main>
+<script src="title.js"></script>
+<script src="deck.js"></script>
+</body>
+</html>
