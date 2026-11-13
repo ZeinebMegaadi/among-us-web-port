@@ -214,11 +214,11 @@
 <!-- ================= 4. ARCHITECTURE ================= -->
 <section class="slide s2" data-steps="1" data-hud="one game · transport swapped with --proto tcp|udp">
   <div class="inner">
-    <header class="head"><p class="kicker">2 · Socket architecture</p><h2>Where the sockets live</h2></header>
+    <header class="head"><p class="kicker">2 · Socket architecture</p><h2>Socket Architecture</h2></header>
 
     <div class="arch">
       <div class="client glass">
-        <p class="boxlabel">Client computer <b>×3</b></p>
+        <p class="boxlabel">Client computer <b>×4</b></p>
         <div class="layer">Game UI<small>browser tab · React + Phaser</small></div>
         <div class="ipc"><span>loopback · stays on this PC</span></div>
         <div class="layer strong">Local agent<small>Node.js · <code>web/agent.cjs</code></small>
@@ -255,7 +255,7 @@ transport.send(sessionId, type, data)</pre>
 
     <div class="s2-lines">
       <p class="callout">Browsers can't open raw sockets, so <b>a small local Node agent</b> does it.</p>
-      <p class="callout big" data-step="1">Swap one file, change the protocol. <b>Clients ask; the server decides.</b></p>
+      <p class="callout big" data-step="1">The game rules never mention net or dgram. <b>Clients ask; the server decides.</b></p>
     </div>
   </div>
   <p class="say" hidden>The game runs in a browser tab, and a browser can't open raw TCP or UDP sockets. So each computer runs a small Node program, the local agent, which owns the real socket. The tab talks to it inside the same computer, so between computers there is only our own TCP or UDP. On the server, the TCP file and the UDP file offer the same four functions: connect, message, disconnect, send. The game rules only use those four, so changing protocol means swapping one file. And the server decides everything: a client only asks, for example "I want to kill", and the server checks it.</p>
