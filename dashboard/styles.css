@@ -353,6 +353,37 @@ h1 { font: 900 118px/.98 var(--disp); letter-spacing: -.03em; text-transform: up
 .bonus .fact { padding: 32px 32px 36px; }
 .bonus .fact h3 { font-size: 32px; }
 .bonus .fact p { font-size: 26px; }
+/* Wireshark capture view: a light "window" like the real app, with its default colouring rules
+   (TCP rows #e7e6ff, Bad TCP rows #12272e on #f78787, valid display filter in green). */
+.capture { display: flex; flex-direction: column; gap: 20px; min-height: 0; }
+.ws { background: #fff; color: #16181d; border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px rgba(255, 255, 255, .28), 0 30px 80px -34px #000; }
+.ws-bar { display: flex; align-items: center; gap: 9px; padding: 9px 16px; background: #e8ebf0; border-bottom: 1px solid #c8cdd6; font: 700 18px var(--body); color: #3a3f4a; }
+.ws-bar i { width: 13px; height: 13px; border-radius: 50%; background: #ff5f57; }
+.ws-bar i:nth-child(2) { background: #febc2e; } .ws-bar i:nth-child(3) { background: #28c840; }
+.ws-bar span { margin-left: 10px; }
+.ws-filter { margin: 8px 12px; padding: 4px 12px; border: 1px solid #7fc97f; border-radius: 4px; background: #afffaf; font: 500 18px var(--mono); }
+.ws-list { padding-bottom: 6px; font: 500 17px/1.55 var(--mono); }
+.ws-row { display: grid; grid-template-columns: 58px 86px 150px 150px 54px 44px minmax(0, 1fr) 150px; column-gap: 14px; padding: 1px 12px; white-space: nowrap; }
+.ws-row > span { overflow: hidden; text-overflow: ellipsis; }
+.ws-head { font-family: var(--body); font-weight: 800; background: #f3f4f7; border-block: 1px solid #d5d9e0; }
+.ws-row.tcp { background: #e7e6ff; }
+.ws-row.bad { background: #12272e; color: #f78787; }
+.ws-row.sel { background: #2f6fd6; color: #fff; }
+.ws-row > span:last-child { font-weight: 800; }
+.ws-row .dim { font-weight: 500 !important; opacity: .6; }
+.ws-gap { padding: 2px 12px; text-align: center; font: 600 16px var(--body); color: #7a808c; background: #fafbfc; }
+.capbottom { display: grid; grid-template-columns: 1.55fr 1fr; gap: 22px; }
+.ws-stream { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px 6px; }
+.ws-stream code { display: block; padding: 1px 6px; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-stream .c, .ws-legend .c { color: #7f0000; background: #fbeded; }
+.ws-stream .s, .ws-legend .s { color: #00007f; background: #ededfb; }
+.ws-legend { display: flex; gap: 12px; align-items: center; padding: 4px 14px 10px; font: 600 15px var(--body); color: #6a707c; }
+.ws-legend span { padding: 1px 8px; border-radius: 4px; }
+.capstats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.capstat { padding: 14px 18px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.capstat b { font: 900 36px/1.05 var(--disp); color: var(--tcp); text-shadow: 0 0 16px color-mix(in srgb, var(--tcp) 45%, transparent); }
+.capstat b.ok { color: var(--ack); } .capstat b.warn { color: var(--warn); }
+.capstat span { font: 500 19px/1.3 var(--body); color: var(--muted); }
 .closing { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 40px; padding-bottom: 120px; }
 .closeline { font: 900 84px/1.1 var(--disp); letter-spacing: -.03em; text-transform: uppercase; }
 .questions { font: 800 54px var(--body); color: var(--muted); }

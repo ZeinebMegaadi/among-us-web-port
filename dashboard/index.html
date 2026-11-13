@@ -325,7 +325,7 @@ transport.send(sessionId, type, data)</pre>
 </section>
 
 <!-- ================= 6. UDP (reliability + fast lane) ================= -->
-<section class="slide s5" data-steps="8" data-hud="UDP → :5001 · connected · seq + ACK + RTO are ours" data-seq="7" data-race="8">
+<section class="slide s5" data-steps="7" data-hud="UDP → :5001 · connected · seq + ACK + RTO are ours" data-race="7">
   <div class="inner">
     <header class="head"><p class="kicker u">4 · The UDP version</p><h2>UDP: nothing is promised. So we built it.</h2></header>
     <p class="lede"><b class="u">Server:</b> <b>one socket on <code>:5001</code> for everyone.</b> A player = an address that said HELLO, plus a secret token.</p>
@@ -370,37 +370,7 @@ transport.send(sessionId, type, data)</pre>
           <p>Then the player is considered gone.</p></div>
       </div>
 
-      <div class="hero" data-step="7" data-until="7">
-        <div class="glass udp seq" id="seq">
-          <div class="seqhead"><code>Client · dgram</code><code>Server · dgram :5001</code></div>
-          <div class="sr to" data-p="1"><span class="nl"></span>
-            <div class="ar"><code>{"t":"MSG","seq":1,"type":"player:register"}</code><i></i></div>
-            <span class="nr ok">delivered to the game</span></div>
-          <div class="sr back lost" data-p="2"><span class="nl bad">the ACK never arrives</span>
-            <div class="ar"><code>{"t":"ACK","seq":1} <em>was ejected.</em></code><i></i></div>
-            <span class="nr"></span></div>
-          <div class="sr wait" data-p="3"><span class="nl warn">no ACK within the RTO<b class="rto"><i></i></b></span>
-            <div class="ar none"></div><span class="nr"></span></div>
-          <div class="sr to rt" data-p="4"><span class="nl warn">resend</span>
-            <div class="ar"><code>{"t":"MSG","seq":1,…} <em>retransmission</em></code><i></i></div>
-            <span class="nr">already delivered: ignored, ACKed again</span></div>
-          <div class="sr back" data-p="5"><span class="nl ok">acknowledged</span>
-            <div class="ar"><code>{"t":"ACK","seq":1}</code><i></i></div>
-            <span class="nr"></span></div>
-        </div>
-        <div class="glass counters">
-          <h3>ReliableChannel counters</h3>
-          <dl>
-            <dt>reliableSent</dt><dd data-c="sent">0</dd>
-            <dt>retransmits</dt><dd data-c="rt">0</dd>
-            <dt>duplicatesIgnored</dt><dd data-c="dup">0</dd>
-            <dt>acksReceived</dt><dd data-c="ack">0</dd>
-          </dl>
-          <p>Delivered once, in order, over a protocol that promises nothing.</p>
-        </div>
-      </div>
-
-      <div class="fastlane" data-step="8">
+      <div class="fastlane" data-step="7">
         <div class="lanes2">
           <div class="glass udp lanecard">
             <h3>Reliable lane <code>MSG</code></h3>
@@ -423,7 +393,7 @@ transport.send(sessionId, type, data)</pre>
       </div>
     </div>
   </div>
-  <p class="say" hidden>UDP promises nothing: packets can be lost, duplicated or arrive out of order, and nobody tells you when a player is gone. The server has one socket for everyone, so we built sessions: the client says HELLO, the server answers WELCOME with a secret token, and every later packet carries it. Then we rebuilt reliability ourselves. Each important message gets a number and must be confirmed. No confirmation in time: we send it again, and the waiting time adapts to the network. Duplicates are ignored, and early messages wait for the missing one. After 25 resends, or 5 seconds of silence, the player is gone. In this animation the confirmation is lost: the client resends, and the server ignores the copy. Positions skip all of this on purpose: 20 per second, never resent. With the same loss, TCP freezes, while UDP simply shows the next position 50 milliseconds later.</p>
+  <p class="say" hidden>UDP promises nothing: packets can be lost, duplicated or arrive out of order, and nobody tells you when a player is gone. The server has one socket for everyone, so we built sessions: the client says HELLO, the server answers WELCOME with a secret token, and every later packet carries it. Then we rebuilt reliability ourselves. Each important message gets a number and must be confirmed. No confirmation in time: we send it again, and the waiting time adapts to the network. Duplicates are ignored, and early messages wait for the missing one. After 25 resends, or 5 seconds of silence, the player is gone. Positions skip all of this on purpose: 20 per second, never resent. With the same loss, TCP freezes, while UDP simply shows the next position 50 milliseconds later.</p>
 </section>
 
 <!-- ================= 7. LIVE DEMO ================= -->
@@ -700,57 +670,6 @@ transport.send(sessionId, type, data)</pre>
   <p class="say" hidden>Six problems, six fixes. The original project used libraries that hid TCP, so we removed them. Browsers can't open sockets, so a local agent does it. Players could cheat, so the server now checks everything. Positions were sent up to 144 times per second; now 20. Dead players stayed connected; now a heartbeat removes them. And UDP promised nothing, so we built reliability ourselves. Then the optimizations, each with a number. The hardest part was not writing sockets: it was discovering what the libraries had been doing for us.</p>
 </section>
 
-<!-- ================= 12. BONUS + CLOSE ================= -->
-<section class="slide s10" data-steps="1" data-hud="bonus: TCP game across networks over Tailscale · relayed via Amsterdam · ~120 ms">
-  <div class="inner">
-    <div class="swap full">
-      <div class="bonus" data-until="0">
-        <header class="head"><p class="kicker">Bonus challenge</p><h2>Four laptops, different networks</h2></header>
-        <div class="nodes">
-          <div class="glass node"><b>Server</b><span class="edit" data-edit="net0" contenteditable="true" spellcheck="false">network A</span></div>
-          <div class="glass node"><i class="crew" style="--c:#E8EDFF;--w:50px"></i><b>Client 1</b><span class="edit" data-edit="net1" contenteditable="true" spellcheck="false">network B</span></div>
-          <div class="glass node"><i class="crew" style="--c:#B79CFF;--w:50px"></i><b>Client 2</b><span class="edit" data-edit="net2" contenteditable="true" spellcheck="false">network C</span></div>
-          <div class="glass node"><i class="crew" style="--c:#FF8AD8;--w:50px"></i><b>Client 3</b><span class="edit" data-edit="net3" contenteditable="true" spellcheck="false">network D</span></div>
-        </div>
-        <div class="tunnel"><span>Tailscale VPN · one private network on top of four real ones</span></div>
-        <div class="facts">
-          <div class="glass fact"><h3>A full TCP game</h3><p>One player on 4G. No code change. Nothing lost, no reset.</p></div>
-          <div class="glass fact"><h3>Relayed, not direct</h3><p>4G blocked a direct path, so Tailscale relayed it via Amsterdam.</p></div>
-          <div class="glass fact"><h3>≈ 120 ms round trip</h3><p>vs ≈ 10 ms on the LAN. Still fully playable.</p></div>
-        </div>
-        <p class="status">Status: <span class="edit" data-edit="bonus-status" contenteditable="true" spellcheck="false">TCP version played across networks · UDP version not captured yet</span></p>
-      </div>
-
-      <div class="closing" data-step="1">
-        <p class="closeline"><span class="t">TCP gives you a promise.</span><br><span class="u">UDP gives you a choice.</span></p>
-        <div class="parade" aria-hidden="true">
-          <i class="crew walk" style="--c:var(--tcp)"></i><i class="crew walk" style="--c:var(--tcp)"></i><i class="crew walk" style="--c:var(--tcp)"></i>
-          <i class="crew walk" style="--c:#E8EDFF"></i><i class="crew walk" style="--c:#B79CFF"></i><i class="crew walk" style="--c:#FF8AD8"></i>
-          <i class="crew walk" style="--c:var(--udp)"></i><i class="crew walk" style="--c:var(--udp)"></i><i class="crew walk" style="--c:var(--udp)"></i>
-        </div>
-      </div>
-    </div>
-  </div>
-  <p class="say" hidden>Bonus: playing across different networks. Tailscale is a VPN that puts the four laptops on one private network, and the server already listens on every network, so no code changed. We played a full game on the TCP version with one player on 4G and captured it. The 4G network blocked a direct connection, so Tailscale relayed the traffic through its server in Amsterdam. The round trip went from about 10 milliseconds on the LAN to about 120, and the game stayed fully playable: no segment lost, no reset, and a single retransmission that turned out to be useless, because only the acknowledgement was late. One caution for UDP: Tailscale's relay carries traffic over TCP, so through a relay our UDP would really travel inside TCP. To close: TCP gives you a promise, and you pay with freezes. UDP gives you a choice, and you pay with code.</p>
-</section>
-
-<!-- ================= THANK YOU ================= -->
-<section class="slide sty" data-steps="0" data-hud="thank you · questions welcome">
-  <div class="inner">
-    <p class="kicker">Among Us Arena · one game, two transports</p>
-    <h1>Thank you.</h1>
-    <p class="sub">Questions?</p>
-    <div class="tyteam">
-      <div class="member"><i class="crew walk" style="--c:#7FA8FF;--w:120px"></i><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Israa Daassi</span></div>
-      <div class="member"><i class="crew walk" style="--c:#E8EDFF;--w:120px"></i><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div>
-      <div class="member"><i class="crew walk" style="--c:#B79CFF;--w:120px"></i><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div>
-      <div class="member"><i class="crew walk" style="--c:#FF8AD8;--w:120px"></i><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div>
-    </div>
-    <p class="tyfoot"><span class="t">TCP :5000</span> · <span class="u">UDP :5001</span> · Node net + dgram only · run instructions: README §5 (TCP) and §6 (UDP)</p>
-  </div>
-  <p class="say" hidden>Thank you for listening. The source code and the instructions to run both versions are in the repository README. We are happy to take your questions, and we can open any slide, any file, the server log or a Wireshark capture to answer them.</p>
-</section>
-
 <!-- ================= BACKUP: network weaknesses (for questions) ================= -->
 <section class="slide sw" data-steps="2" data-hud="backup · weakness → what we did · TCP only / UDP only">
   <div class="inner">
@@ -773,6 +692,103 @@ transport.send(sessionId, type, data)</pre>
     </div>
   </div>
   <p class="say" hidden>Backup slide for questions: the network weaknesses of each protocol and what we did about each one. TCP: no message boundaries, Nagle's delay, head-of-line blocking, and silent dead peers. UDP: lost datagrams, duplicates and reordering, no connection and no goodbye, and the risk of making a bad network worse with resends or oversized datagrams.</p>
+</section>
+
+<!-- ================= 12. BONUS + CLOSE ================= -->
+<section class="slide s10" data-steps="2" data-hud="bonus: TCP game across networks over Tailscale · relayed via Amsterdam · ~120 ms">
+  <div class="inner">
+    <div class="swap full">
+      <div class="bonus" data-until="0">
+        <header class="head"><p class="kicker">Bonus challenge</p><h2>Four laptops, different networks</h2></header>
+        <div class="nodes">
+          <div class="glass node"><b>Server</b><span class="edit" data-edit="net0" contenteditable="true" spellcheck="false">network A</span></div>
+          <div class="glass node"><i class="crew" style="--c:#E8EDFF;--w:50px"></i><b>Client 1</b><span class="edit" data-edit="net1" contenteditable="true" spellcheck="false">network B</span></div>
+          <div class="glass node"><i class="crew" style="--c:#B79CFF;--w:50px"></i><b>Client 2</b><span class="edit" data-edit="net2" contenteditable="true" spellcheck="false">network C</span></div>
+          <div class="glass node"><i class="crew" style="--c:#FF8AD8;--w:50px"></i><b>Client 3</b><span class="edit" data-edit="net3" contenteditable="true" spellcheck="false">network D</span></div>
+        </div>
+        <div class="tunnel"><span>Tailscale VPN · one private network on top of four real ones</span></div>
+        <div class="facts">
+          <div class="glass fact"><h3>A full TCP game</h3><p>One player on 4G. No code change. Nothing lost, no reset.</p></div>
+          <div class="glass fact"><h3>Relayed, not direct</h3><p>4G blocked a direct path, so Tailscale relayed it via Amsterdam.</p></div>
+          <div class="glass fact"><h3>≈ 120 ms round trip</h3><p>vs ≈ 10 ms on the LAN. Still fully playable.</p></div>
+        </div>
+        <p class="status">Status: <span class="edit" data-edit="bonus-status" contenteditable="true" spellcheck="false">TCP version played across networks · UDP version not captured yet</span></p>
+      </div>
+
+      <!-- Wireshark view of the real capture (Downloads/tailscale-game-wireshark.pcap, 13 Nov 2026).
+           Every row below comes from that file: numbers, times, lengths, relative Seq/Ack, payloads.
+           Info of 4290/4291 is shortened to fit (Win= and Seq= dropped); the SACK block is real. -->
+      <div class="capture" data-step="1" data-until="1">
+        <header class="head"><p class="kicker">Bonus · Wireshark, inside the Tailscale tunnel</p><h2>What crossed the Internet</h2></header>
+
+        <div class="ws">
+          <div class="ws-bar"><i></i><i></i><i></i><span>tailscale-game-wireshark.pcap · 4300 packets · 108.8 s</span></div>
+          <div class="ws-filter">tcp.port == 5000</div>
+          <div class="ws-list">
+            <div class="ws-row ws-head"><span>No.</span><span>Time</span><span>Source</span><span>Destination</span><span>Proto</span><span>Len</span><span>Info</span><span>Game message</span></div>
+            <div class="ws-row tcp"><span>1159</span><span>30.250</span><span>100.83.90.38</span><span>100.113.41.18</span><span>TCP</span><span>113</span><span>16775 → 5000 [PSH, ACK] Seq=23141 Ack=58834 Win=254 Len=73</span><span>player:move</span></div>
+            <div class="ws-row tcp"><span>1160</span><span>30.287</span><span>100.113.41.18</span><span>100.83.90.38</span><span>TCP</span><span>160</span><span>5000 → 16775 [PSH, ACK] Seq=58834 Ack=23141 Win=253 Len=120</span><span>player:moved</span></div>
+            <div class="ws-row tcp"><span>1175</span><span>30.689</span><span>100.83.90.38</span><span>100.113.41.18</span><span>TCP</span><span>113</span><span>16775 → 5000 [PSH, ACK] Seq=23653 Ack=59312 Win=253 Len=73</span><span>player:move</span></div>
+            <div class="ws-row tcp sel"><span>1176</span><span>30.727</span><span>100.113.41.18</span><span>100.83.90.38</span><span>TCP</span><span>172</span><span>5000 → 16775 [PSH, ACK] Seq=59312 Ack=23653 Win=251 Len=132</span><span>player:killed</span></div>
+            <div class="ws-row tcp"><span>1177</span><span>30.768</span><span>100.83.90.38</span><span>100.113.41.18</span><span>TCP</span><span>40</span><span>16775 → 5000 [ACK] Seq=23726 Ack=59444 Win=252 Len=0</span><span class="dim">(ACK only)</span></div>
+            <div class="ws-gap">⋮ 75 seconds later ⋮</div>
+            <div class="ws-row tcp"><span>4288</span><span>105.812</span><span>100.113.41.18</span><span>100.83.90.38</span><span>TCP</span><span>84</span><span>5000 → 16775 [PSH, ACK] Seq=283186 Ack=27026 Win=253 Len=44</span><span>PONG</span></div>
+            <div class="ws-row tcp"><span>4289</span><span>105.869</span><span>100.83.90.38</span><span>100.113.41.18</span><span>TCP</span><span>40</span><span>16775 → 5000 [ACK] Seq=27026 Ack=283230 Win=255 Len=0</span><span class="dim">(ACK only)</span></div>
+            <div class="ws-row bad"><span>4290</span><span>106.083</span><span>100.113.41.18</span><span>100.83.90.38</span><span>TCP</span><span>84</span><span>[TCP Spurious Retransmission] 5000 → 16775 [PSH, ACK] Seq=283186 Ack=27026 Len=44</span><span>PONG again</span></div>
+            <div class="ws-row bad"><span>4291</span><span>106.083</span><span>100.83.90.38</span><span>100.113.41.18</span><span>TCP</span><span>52</span><span>[TCP Dup ACK 4289#1] 16775 → 5000 [ACK] Ack=283230 SLE=283186 SRE=283230</span><span class="dim">(ACK only)</span></div>
+          </div>
+        </div>
+
+        <div class="capbottom">
+          <div class="ws wsf">
+            <div class="ws-bar"><i></i><i></i><i></i><span>Follow TCP Stream · 100.83.90.38:16775 ↔ 100.113.41.18:5000</span></div>
+            <div class="ws-stream">
+              <code class="c">{"type":"PING","data":{"ts":1794566152410}}</code>
+              <code class="s">{"type":"PONG","data":{"ts":1794566152410}}</code>
+              <code class="c">{"type":"meeting:vote","data":{"votedForId":"skip"}}</code>
+              <code class="c">{"type":"player:move","data":{"x":560,"y":150,"d":"left","moving":false}}</code>
+              <code class="s">{"type":"player:moved","data":{"id":"p-5301a911cfa5dde5","roomId":"J55VW7","x":560,"y":150,"d":"right","moving":false}}</code>
+              <code class="s">{"type":"player:killed","data":{"playerId":"p-a0763c0df1e55cd3","killerId":"p-240c34712044bafb","x":560,"y":344,"color":"#6b2fbc"}}</code>
+            </div>
+            <p class="ws-legend"><span class="c">player → server</span><span class="s">server → player</span>one JSON message per line</p>
+          </div>
+          <div class="capstats">
+            <div class="glass capstat"><b>118 ms</b><span>median round trip<br>(LAN ≈ 10 ms)</span></div>
+            <div class="glass capstat"><b class="ok">0</b><span>segments lost,<br>reordered or reset</span></div>
+            <div class="glass capstat"><b class="warn">1</b><span>retransmission, spurious:<br>only the ACK was late</span></div>
+            <div class="glass capstat"><b>DERP</b><span>relayed via Amsterdam<br>(4G blocked a direct path)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="closing" data-step="2">
+        <p class="closeline"><span class="t">TCP gives you a promise.</span><br><span class="u">UDP gives you a choice.</span></p>
+        <div class="parade" aria-hidden="true">
+          <i class="crew walk" style="--c:var(--tcp)"></i><i class="crew walk" style="--c:var(--tcp)"></i><i class="crew walk" style="--c:var(--tcp)"></i>
+          <i class="crew walk" style="--c:#E8EDFF"></i><i class="crew walk" style="--c:#B79CFF"></i><i class="crew walk" style="--c:#FF8AD8"></i>
+          <i class="crew walk" style="--c:var(--udp)"></i><i class="crew walk" style="--c:var(--udp)"></i><i class="crew walk" style="--c:var(--udp)"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="say" hidden>Bonus: playing across different networks. Tailscale is a VPN that puts the four laptops on one private network, and the server already listens on every network, so no code changed. We played a full game on the TCP version with one player on 4G and captured it. The 4G network blocked a direct connection, so Tailscale relayed the traffic through its server in Amsterdam. The round trip went from about 10 milliseconds on the LAN to about 120, and the game stayed fully playable: no segment lost, no reset, and a single retransmission that turned out to be useless, because only the acknowledgement was late. One caution for UDP: Tailscale's relay carries traffic over TCP, so through a relay our UDP would really travel inside TCP. Here is the capture, taken inside the tunnel so our messages are readable. At the top, the first kill: the player keeps sending moves, and packet 1176 is the server's player:killed, 132 bytes, acknowledged 41 milliseconds later. Further down, the only retransmission of the whole game: the server sent a PONG, the player acknowledged it, but the acknowledgement was still crossing the relay when the server's timer fired, so the server sent the PONG again. Wireshark marks it spurious, and the player answers with a duplicate ACK whose SACK block says: I already have those bytes. Below, Follow TCP Stream shows our protocol as it really travels: one JSON message per line, the player in red, the server in blue. To close: TCP gives you a promise, and you pay with freezes. UDP gives you a choice, and you pay with code.</p>
+</section>
+
+<!-- ================= THANK YOU ================= -->
+<section class="slide sty" data-steps="0" data-hud="thank you · questions welcome">
+  <div class="inner">
+    <p class="kicker">Among Us Arena · one game, two transports</p>
+    <h1>Thank you.</h1>
+    <p class="sub">Questions?</p>
+    <div class="tyteam">
+      <div class="member"><i class="crew walk" style="--c:#7FA8FF;--w:120px"></i><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Israa Daassi</span></div>
+      <div class="member"><i class="crew walk" style="--c:#E8EDFF;--w:120px"></i><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div>
+      <div class="member"><i class="crew walk" style="--c:#B79CFF;--w:120px"></i><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div>
+      <div class="member"><i class="crew walk" style="--c:#FF8AD8;--w:120px"></i><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div>
+    </div>
+    <p class="tyfoot"><span class="t">TCP :5000</span> · <span class="u">UDP :5001</span> · Node net + dgram only · run instructions: README §5 (TCP) and §6 (UDP)</p>
+  </div>
+  <p class="say" hidden>Thank you for listening. The source code and the instructions to run both versions are in the repository README. We are happy to take your questions, and we can open any slide, any file, the server log or a Wireshark capture to answer them.</p>
 </section>
 
 <footer class="hud">
