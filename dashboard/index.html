@@ -169,7 +169,7 @@
       <div class="glass rules">
         <h3>Rules</h3>
 
-        <!-- the cast: 1 secret imposter vs 3 crewmates (3 client PCs + the server PC, which also plays) -->
+        <!-- the cast: 1 secret imposter vs 3 crewmates (4 clients: 3 client PCs + client 4 on the server PC) -->
         <div class="cast">
           <div class="who imp">
             <span class="range" aria-hidden="true"></span>
@@ -208,7 +208,7 @@
       </ul>
     </div>
   </div>
-  <p class="say" hidden>Four players: three client computers, plus the server computer, which also plays. The server secretly picks one imposter; the other three are crewmates. The imposter kills crewmates who are close, once every 10 seconds. Anyone can call one meeting to vote someone out. Crew wins by voting the imposter out; the imposter wins at one against one. Each player earns points, and the end screen shows a ranking. Below: the 7 required features. Both versions have all 7, with the same rules and messages.</p>
+  <p class="say" hidden>Four players, four clients: three on their own computers, and the fourth on the server computer, which also plays. The server secretly picks one imposter; the other three are crewmates. The imposter kills crewmates who are close, once every 10 seconds. Anyone can call one meeting to vote someone out. Crew wins by voting the imposter out; the imposter wins at one against one. Each player earns points, and the end screen shows a ranking. Below: the 7 required features. Both versions have all 7, with the same rules and messages.</p>
 </section>
 
 <!-- ================= 4. ARCHITECTURE ================= -->
@@ -240,7 +240,7 @@
       </div>
 
       <div class="server glass">
-        <p class="boxlabel">Server computer <b>+ player 4</b></p>
+        <p class="boxlabel">Server computer <b>+ client 4</b></p>
         <div class="layer strong">Game rules<small>same code for TCP and UDP · the server decides</small></div>
         <pre class="iface">transport.on('connect')
 transport.on('message')
@@ -397,7 +397,7 @@ transport.send(sessionId, type, data)</pre>
 </section>
 
 <!-- ================= 7. LIVE DEMO ================= -->
-<section class="slide sd" data-steps="1" data-hud="live demo · 4 computers · 4 players (the server PC plays too)">
+<section class="slide sd" data-steps="1" data-hud="live demo · 4 computers · 4 clients (client 4 runs on the server PC)">
   <div class="inner">
     <header class="head"><p class="kicker">5 · Live demonstration</p><h2>Same script, played twice</h2></header>
     <div class="demo">
@@ -418,7 +418,7 @@ transport.send(sessionId, type, data)</pre>
           <div class="glass udp drun" data-step="1"><h3>Run 2 · UDP :5001</h3><code class="line">server&gt; npm run udp</code><code class="line">client&gt; npm run udp -- --server &lt;ip&gt;</code></div>
         </div>
         <div class="seats">
-          <div class="glass seat"><i class="crew" style="--c:#7FA8FF;--w:58px"></i><div><small>Server PC</small><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Israa Daassi</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#7FA8FF;--w:58px"></i><div><small>Client 4 · server PC</small><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Israa Daassi</span></div></div>
           <div class="glass seat"><i class="crew" style="--c:#E8EDFF;--w:58px"></i><div><small>Client 1</small><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div></div>
           <div class="glass seat"><i class="crew" style="--c:#B79CFF;--w:58px"></i><div><small>Client 2</small><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div></div>
           <div class="glass seat"><i class="crew" style="--c:#FF8AD8;--w:58px"></i><div><small>Client 3</small><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div></div>
@@ -427,7 +427,7 @@ transport.send(sessionId, type, data)</pre>
       </div>
     </div>
   </div>
-  <p class="say" hidden>Now the live game: four computers, four players; the server computer plays too. We play the same script twice, first on TCP, then on UDP: log in, create a room, join, start, play, and read the ranking. Then we stop one player: TCP notices at once, UDP after about 5 seconds. Watch the server log, the HUD on each screen, which in UDP shows our resends, and Wireshark.</p>
+  <p class="say" hidden>Now the live game: four computers, four clients; the server computer runs the fourth client, so it plays too. We play the same script twice, first on TCP, then on UDP: log in, create a room, join, start, play, and read the ranking. Then we stop one player: TCP notices at once, UDP after about 5 seconds. Watch the server log, the HUD on each screen, which in UDP shows our resends, and Wireshark.</p>
 </section>
 
 <!-- ================= 8. SIMULTANEOUS PLAYERS + DISCONNECTIONS ================= -->
@@ -450,7 +450,7 @@ transport.send(sessionId, type, data)</pre>
               <div class="cl"><i class="crew" style="--c:#FF8AD8;--w:66px"></i><code>client 3</code></div>
               <div class="ln"><span></span></div>
               <code class="sk">socket · tcp-3</code>
-              <div class="cl"><i class="crew" style="--c:#7FA8FF;--w:66px"></i><code>server PC</code></div>
+              <div class="cl"><i class="crew" style="--c:#7FA8FF;--w:66px"></i><code>client 4</code></div>
               <div class="ln"><span></span></div>
               <code class="sk">socket · tcp-4</code>
             </div>
@@ -463,7 +463,7 @@ transport.send(sessionId, type, data)</pre>
               <div class="cl"><i class="crew" style="--c:#E8EDFF;--w:66px"></i><code>client 1</code></div>
               <div class="cl"><i class="crew" style="--c:#B79CFF;--w:66px"></i><code>client 2</code></div>
               <div class="cl"><i class="crew" style="--c:#FF8AD8;--w:66px"></i><code>client 3</code></div>
-              <div class="cl"><i class="crew" style="--c:#7FA8FF;--w:66px"></i><code>server PC</code></div>
+              <div class="cl"><i class="crew" style="--c:#7FA8FF;--w:66px"></i><code>client 4</code></div>
               <svg class="conv" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                 <path d="M0 12.5 L100 50"/><path d="M0 37.5 L100 50"/><path d="M0 62.5 L100 50"/><path d="M0 87.5 L100 50"/>
               </svg>
@@ -701,7 +701,7 @@ transport.send(sessionId, type, data)</pre>
       <div class="bonus" data-until="0">
         <header class="head"><p class="kicker">Bonus challenge</p><h2>Four laptops, different networks</h2></header>
         <div class="nodes">
-          <div class="glass node"><b>Server</b><span class="edit" data-edit="net0" contenteditable="true" spellcheck="false">network A</span></div>
+          <div class="glass node"><i class="crew" style="--c:#7FA8FF;--w:50px"></i><b>Client 4<small>+ server</small></b><span class="edit" data-edit="net0" contenteditable="true" spellcheck="false">network A</span></div>
           <div class="glass node"><i class="crew" style="--c:#E8EDFF;--w:50px"></i><b>Client 1</b><span class="edit" data-edit="net1" contenteditable="true" spellcheck="false">network B</span></div>
           <div class="glass node"><i class="crew" style="--c:#B79CFF;--w:50px"></i><b>Client 2</b><span class="edit" data-edit="net2" contenteditable="true" spellcheck="false">network C</span></div>
           <div class="glass node"><i class="crew" style="--c:#FF8AD8;--w:50px"></i><b>Client 3</b><span class="edit" data-edit="net3" contenteditable="true" spellcheck="false">network D</span></div>
