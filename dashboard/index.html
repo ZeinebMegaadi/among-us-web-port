@@ -418,10 +418,10 @@ transport.send(sessionId, type, data)</pre>
           <div class="glass udp drun" data-step="1"><h3>Run 2 · UDP :5001</h3><code class="line">server&gt; npm run udp</code><code class="line">client&gt; npm run udp -- --server &lt;ip&gt;</code></div>
         </div>
         <div class="seats">
-          <div class="glass seat"><i class="crew" style="--c:#7FA8FF;--w:58px"></i><div><small>Server PC</small><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Israa Daassi</span></div></div>
-          <div class="glass seat"><i class="crew" style="--c:#E8EDFF;--w:58px"></i><div><small>Client 1</small><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div></div>
-          <div class="glass seat"><i class="crew" style="--c:#B79CFF;--w:58px"></i><div><small>Client 2</small><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div></div>
-          <div class="glass seat"><i class="crew" style="--c:#FF8AD8;--w:58px"></i><div><small>Client 3</small><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#7FA8FF;--w:58px"></i><div><small>Server PC + Client 1</small><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#E8EDFF;--w:58px"></i><div><small>Client 2</small><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#B79CFF;--w:58px"></i><div><small>Client 3</small><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#FF8AD8;--w:58px"></i><div><small>Client 4</small><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Israa Daassi</span></div></div>s
         </div>
         <p class="callout">Watch the server log, the in-game HUD (<kbd>F3</kbd>) and Wireshark: <code>tcp.port == 5000</code> · <code>udp.port == 5001</code></p>
       </div>
@@ -701,10 +701,10 @@ transport.send(sessionId, type, data)</pre>
       <div class="bonus" data-until="0">
         <header class="head"><p class="kicker">Bonus challenge</p><h2>Four laptops, different networks</h2></header>
         <div class="nodes">
-          <div class="glass node"><b>Server</b><span class="edit" data-edit="net0" contenteditable="true" spellcheck="false">network A</span></div>
-          <div class="glass node"><i class="crew" style="--c:#E8EDFF;--w:50px"></i><b>Client 1</b><span class="edit" data-edit="net1" contenteditable="true" spellcheck="false">network B</span></div>
-          <div class="glass node"><i class="crew" style="--c:#B79CFF;--w:50px"></i><b>Client 2</b><span class="edit" data-edit="net2" contenteditable="true" spellcheck="false">network C</span></div>
-          <div class="glass node"><i class="crew" style="--c:#FF8AD8;--w:50px"></i><b>Client 3</b><span class="edit" data-edit="net3" contenteditable="true" spellcheck="false">network D</span></div>
+          <div class="glass node"><b>Server + Client 1</b><span class="edit" data-edit="net0" contenteditable="true" spellcheck="false">network A</span></div>
+          <div class="glass node"><i class="crew" style="--c:#E8EDFF;--w:50px"></i><b>Client 2</b><span class="edit" data-edit="net1" contenteditable="true" spellcheck="false">network B</span></div>
+          <div class="glass node"><i class="crew" style="--c:#B79CFF;--w:50px"></i><b>Client 3</b><span class="edit" data-edit="net2" contenteditable="true" spellcheck="false">network C</span></div>
+          <div class="glass node"><i class="crew" style="--c:#FF8AD8;--w:50px"></i><b>Client 4</b><span class="edit" data-edit="net3" contenteditable="true" spellcheck="false">network D</span></div>
         </div>
         <div class="tunnel"><span>Tailscale VPN · one private network on top of four real ones</span></div>
         <div class="facts">
