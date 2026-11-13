@@ -4,9 +4,12 @@ import { EventBus } from '../EventBus';
 import { createPlayer } from '../utils/playerFactory.js';
 
 // How often we send our position (see handleMovement):
+// Fixed 20 Hz instead of every frame (60-144/s): same smoothness, far fewer packets on the network.
 const MOVE_SEND_INTERVAL_MS = 50;    // 20 per second while moving
 const IDLE_SEND_INTERVAL_MS = 500;   // 2 per second while standing still (keeps the server's copy fresh)
 // Smoothing of the OTHER players' sprites between two position updates:
+// Other players glide toward their last received position, so 20 updates/s (or a few lost UDP ones)
+// still look smooth instead of teleporting.
 const SMOOTHING = 0.3;               // each frame, move 30% of the remaining distance to the target
 const SNAP_DISTANCE = 200;           // further than this: jump directly (teleport, spawn...)
 
@@ -387,6 +390,7 @@ export class BaseGameScene extends Scene {
         // Reset velocity each frame
         this.player.body.setVelocity(0, 0);
 
+        // Must match MAX_SPEED in backend/src/config.js, or the server corrects honest moves.
         const speed = this.scene.key === 'WaitingLobby' ? 350 : 100;
         let vx = 0;
         let vy = 0;
