@@ -157,7 +157,7 @@
     </div>
 
   </div>
-  <p class="say" hidden>Four parts, one per speaker. First the game and the architecture. Then the TCP version and the UDP version. Then the proof: a live game, and how both versions handle many players and disconnections. Last, edge cases, the measured comparison, and our challenges.</p>
+  <p class="say" hidden>Four parts. First the game and the architecture. Then the TCP version and the UDP version. Then the proof: a live game, and how both versions handle many players and disconnections. Last, edge cases, the measured comparison, and our challenges.</p>
 </section>
 
 <!-- ================= 3. THE GAME ================= -->
@@ -169,7 +169,7 @@
       <div class="glass rules">
         <h3>Rules</h3>
 
-        <!-- the cast: 1 secret imposter vs 3 crewmates (4 clients: 3 client PCs + client 4 on the server PC) -->
+        <!-- the cast: 1 secret imposter vs 3 crewmates (4 clients: 3 client PCs + client 1 on the server PC) -->
         <div class="cast">
           <div class="who imp">
             <span class="range" aria-hidden="true"></span>
@@ -397,7 +397,7 @@ transport.send(sessionId, type, data)</pre>
 </section>
 
 <!-- ================= 7. LIVE DEMO ================= -->
-<section class="slide sd" data-steps="1" data-hud="live demo · 4 computers · 4 clients (client 4 runs on the server PC)">
+<section class="slide sd" data-steps="1" data-hud="live demo · 4 computers · 4 clients (client 1 runs on the server PC)">
   <div class="inner">
     <header class="head"><p class="kicker">5 · Live demonstration</p><h2>Same script, played twice</h2></header>
     <div class="demo">
@@ -418,10 +418,10 @@ transport.send(sessionId, type, data)</pre>
           <div class="glass udp drun" data-step="1"><h3>Run 2 · UDP :5001</h3><code class="line">server&gt; npm run udp</code><code class="line">client&gt; npm run udp -- --server &lt;ip&gt;</code></div>
         </div>
         <div class="seats">
-          <div class="glass seat"><i class="crew" style="--c:#7FA8FF;--w:58px"></i><div><small>Client 4 · server PC</small><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Israa Daassi</span></div></div>
-          <div class="glass seat"><i class="crew" style="--c:#E8EDFF;--w:58px"></i><div><small>Client 1</small><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div></div>
-          <div class="glass seat"><i class="crew" style="--c:#B79CFF;--w:58px"></i><div><small>Client 2</small><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div></div>
-          <div class="glass seat"><i class="crew" style="--c:#FF8AD8;--w:58px"></i><div><small>Client 3</small><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#7FA8FF;--w:58px"></i><div><small>Server PC + Client 1</small><span class="edit" data-edit="m1" contenteditable="true" spellcheck="false">Nabila Ben Ammar</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#E8EDFF;--w:58px"></i><div><small>Client 2</small><span class="edit" data-edit="m2" contenteditable="true" spellcheck="false">Zeineb Megaadi</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#B79CFF;--w:58px"></i><div><small>Client 3</small><span class="edit" data-edit="m3" contenteditable="true" spellcheck="false">Ilyes Jammouci</span></div></div>
+          <div class="glass seat"><i class="crew" style="--c:#FF8AD8;--w:58px"></i><div><small>Client 4</small><span class="edit" data-edit="m4" contenteditable="true" spellcheck="false">Israa Daassi</span></div></div>
         </div>
         <p class="callout">Watch the server log, the in-game HUD (<kbd>F3</kbd>) and Wireshark: <code>tcp.port == 5000</code> · <code>udp.port == 5001</code></p>
       </div>
@@ -581,8 +581,8 @@ transport.send(sessionId, type, data)</pre>
           <p>Theory: 1 − 0.8² = 36% lost. Measured: close.</p>
           <code class="hudline t">TCP · nothing to count<br>reliability: OS TCP stack</code>
           <div class="rtt">
-            <div><small>RTT on the LAN · TCP</small><b class="t"><span class="edit" data-edit="rtt-tcp" contenteditable="true" spellcheck="false">__</span> ms</b></div>
-            <div><small>RTT on the LAN · UDP</small><b class="u"><span class="edit" data-edit="rtt-udp" contenteditable="true" spellcheck="false">__</span> ms</b></div>
+            <div><small>LAN RTT avg · TCP · p95 49 ms</small><b class="t"><span class="edit" data-edit="rtt-tcp" contenteditable="true" spellcheck="false">15.1</span> ms</b></div>
+            <div><small>LAN RTT avg · UDP · p95 43 ms</small><b class="u"><span class="edit" data-edit="rtt-udp" contenteditable="true" spellcheck="false">14.8</span> ms</b></div>
           </div>
         </div>
       </div>
@@ -624,7 +624,7 @@ transport.send(sessionId, type, data)</pre>
       </div>
     </div>
   </div>
-  <p class="say" hidden>We measured both versions. A crash: TCP sees it at once, UDP after 5 seconds. With 20 percent of packets dropped, the UDP game still finished and passed all 38 checks; about 40 percent of positions were lost, as the theory predicts, but the game stayed playable because a new position comes every 50 milliseconds. In TCP, the operating system repairs the loss, so movement stalls instead. UDP costs more: bigger messages and about 60 percent more code. Our verdict: TCP for everything that must arrive. UDP for movement. Reliable for events, unreliable for state that expires.</p>
+  <p class="say" hidden>We measured both versions. A crash: TCP sees it at once, UDP after 5 seconds. With 20 percent of packets dropped, the UDP game still finished and passed all 38 checks; about 40 percent of positions were lost, as the theory predicts, but the game stayed playable because a new position comes every 50 milliseconds. On our real LAN, the round trip was the same for both, about 15 milliseconds: without loss, the protocols look identical. In TCP, the operating system repairs the loss, so movement stalls instead. UDP costs more: bigger messages and about 60 percent more code. Our verdict: TCP for everything that must arrive. UDP for movement. Reliable for events, unreliable for state that expires.</p>
 </section>
 
 <!-- ================= 11. CHALLENGES + OPTIMIZATIONS ================= -->
@@ -654,20 +654,31 @@ transport.send(sessionId, type, data)</pre>
           <p class="after">Numbers, confirmations, resends, token.</p></div>
       </div>
 
-      <div class="opts" data-step="7">
-        <div class="glass opt"><b>144 → 20</b><span>positions per second</span></div>
-        <div class="glass opt"><b>−⅓</b><span>traffic: no echo to the sender</span></div>
-        <div class="glass opt"><b>smooth</b><span>other players glide between updates</span></div>
-        <div class="glass opt"><b>push</b><span>room list sent on change, never polled</span></div>
-        <div class="glass tcp opt"><b class="t">no Nagle</b><span>TCP: no waiting before sending</span></div>
-        <div class="glass udp opt"><b class="u">2 × RTT</b><span>UDP: resend timer adapts</span></div>
-        <div class="glass udp opt"><b class="u">&lt; 1200 B</b><span>UDP: packets never split</span></div>
-        <div class="glass opt"><b>off-thread</b><span>login never freezes the game</span></div>
+      <div class="optwrap" data-step="7">
+        <p class="optlegend"><span class="lg a">both versions</span><span class="lg t">TCP only</span><span class="lg u">UDP only</span><span class="lgnote">each card: the number, what we changed, why it helps</span></p>
+        <div class="opts">
+          <div class="glass opt"><b>144 → 20</b><span class="what">positions per second</span>
+            <p class="why">We used to send one every screen frame, so a 144&nbsp;Hz screen sent 144. Now 20 while moving and 2 when standing still: <em>about 7× less traffic</em>.</p></div>
+          <div class="glass opt"><b>4 → 3</b><span class="what">copies of each move</span>
+            <p class="why">The server used to send your own position back to you. Now it goes only to the <em>other</em> players: one send fewer per move.</p></div>
+          <div class="glass opt"><b>smooth</b><span class="what">others glide between updates</span>
+            <p class="why">20 updates/s would look jumpy. Each frame, a remote player moves 30% of the way to its last known spot, so <em>fewer packets still look fluid</em>.</p></div>
+          <div class="glass opt"><b>push</b><span class="what">room list sent only on change</span>
+            <p class="why">Clients never ask "anything new?" again and again. The server sends the list <em>once</em>, when a room is created, joined, left or started.</p></div>
+          <div class="glass tcp opt"><b class="t">no Nagle</b><span class="what">TCP: messages leave at once</span>
+            <p class="why">By default TCP holds small writes back to bundle them, which adds delay. <code>setNoDelay(true)</code> sends <em>every move immediately</em>.</p></div>
+          <div class="glass udp opt"><b class="u">2 × RTT</b><span class="what">UDP: the resend timer adapts</span>
+            <p class="why">We wait twice the measured round trip (100–1000&nbsp;ms) before resending: <em>quick on a LAN, patient over the internet</em>, no useless resends.</p></div>
+          <div class="glass udp opt"><b class="u">&lt; 1200 B</b><span class="what">UDP: packets are never split</span>
+            <p class="why">Every datagram fits in one network packet. A split datagram is lost entirely if <em>one piece</em> is lost, so we never let that happen.</p></div>
+          <div class="glass opt"><b>off-thread</b><span class="what">login never freezes the game</span>
+            <p class="why">Password hashing (scrypt) is slow on purpose. It runs on Node's background threads, so <em>other players keep moving</em> while someone logs in.</p></div>
+        </div>
       </div>
     </div>
     <div class="fxwalk" aria-hidden="true" data-until="6"><i class="crew walk" style="--c:var(--ack);--w:60px"></i></div>
   </div>
-  <p class="say" hidden>Six problems, six fixes. The original project used libraries that hid TCP, so we removed them. Browsers can't open sockets, so a local agent does it. Players could cheat, so the server now checks everything. Positions were sent up to 144 times per second; now 20. Dead players stayed connected; now a heartbeat removes them. And UDP promised nothing, so we built reliability ourselves. Then the optimizations, each with a number. The hardest part was not writing sockets: it was discovering what the libraries had been doing for us.</p>
+  <p class="say" hidden>Six problems, six fixes. The original project used libraries that hid TCP, so we removed them. Browsers can't open sockets, so a local agent does it. Players could cheat, so the server now checks everything. Positions were sent up to 144 times per second; now 20. Dead players stayed connected; now a heartbeat removes them. And UDP promised nothing, so we built reliability ourselves. Then the optimizations, each with a number. Positions went from up to 144 per second to 20, and 2 when standing still. The server no longer echoes your own position back to you. Remote players glide between updates, so fewer packets still look smooth. The room list is pushed only when it changes, never polled. In TCP we turned off Nagle so small messages leave at once. In UDP the resend timer is twice the measured round trip, and every datagram stays under 1200 bytes so it is never fragmented. And password hashing runs off the main thread, so a login never freezes the game. The hardest part was not writing sockets: it was discovering what the libraries had been doing for us.</p>
 </section>
 
 <!-- ================= BACKUP: network weaknesses (for questions) ================= -->
@@ -701,10 +712,10 @@ transport.send(sessionId, type, data)</pre>
       <div class="bonus" data-until="0">
         <header class="head"><p class="kicker">Bonus challenge</p><h2>Four laptops, different networks</h2></header>
         <div class="nodes">
-          <div class="glass node"><i class="crew" style="--c:#7FA8FF;--w:50px"></i><b>Client 4<small>+ server</small></b><span class="edit" data-edit="net0" contenteditable="true" spellcheck="false">network A</span></div>
-          <div class="glass node"><i class="crew" style="--c:#E8EDFF;--w:50px"></i><b>Client 1</b><span class="edit" data-edit="net1" contenteditable="true" spellcheck="false">network B</span></div>
-          <div class="glass node"><i class="crew" style="--c:#B79CFF;--w:50px"></i><b>Client 2</b><span class="edit" data-edit="net2" contenteditable="true" spellcheck="false">network C</span></div>
-          <div class="glass node"><i class="crew" style="--c:#FF8AD8;--w:50px"></i><b>Client 3</b><span class="edit" data-edit="net3" contenteditable="true" spellcheck="false">network D</span></div>
+          <div class="glass node"><i class="crew" style="--c:#7FA8FF;--w:50px"></i><b>Server + Client 1</b><span class="edit" data-edit="net0" contenteditable="true" spellcheck="false">network A</span></div>
+          <div class="glass node"><i class="crew" style="--c:#E8EDFF;--w:50px"></i><b>Client 2</b><span class="edit" data-edit="net1" contenteditable="true" spellcheck="false">network B</span></div>
+          <div class="glass node"><i class="crew" style="--c:#B79CFF;--w:50px"></i><b>Client 3</b><span class="edit" data-edit="net2" contenteditable="true" spellcheck="false">network C</span></div>
+          <div class="glass node"><i class="crew" style="--c:#FF8AD8;--w:50px"></i><b>Client 4</b><span class="edit" data-edit="net3" contenteditable="true" spellcheck="false">network D</span></div>
         </div>
         <div class="tunnel"><span>Tailscale VPN · one private network on top of four real ones</span></div>
         <div class="facts">
