@@ -98,6 +98,11 @@ code.line { display: block; padding: 8px 12px; border-radius: 10px; background: 
 .hud button { font: inherit; color: var(--ink); background: none; border: 1px solid var(--muted); border-radius: 8px; padding: 0 10px; cursor: pointer; }
 .notes { position: absolute; left: 72px; right: 72px; bottom: 66px; z-index: 50; padding: 22px 28px; font: 500 26px/1.45 var(--body); background: rgba(7, 10, 20, .95); }
 .notes[hidden] { display: none; }
+/* pitch cue: one quiet line between the content and the HUD, swapped on each step */
+.slide:has(> .cue) { padding-bottom: 160px; }
+.cue { position: absolute; left: 72px; right: 72px; bottom: 60px; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 26px; align-items: end; pointer-events: none; }
+.cue > p { margin: 0; padding-left: 14px; border-left: 2px solid rgba(169, 155, 255, .45); font: 500 19px/25px var(--body); color: rgba(163, 175, 204, .88); }
+.cue b { font-weight: 700; color: var(--ink); }
 
 /* ================= 1. title ================= */
 .s1 .inner { gap: 18px; }

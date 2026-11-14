@@ -554,6 +554,12 @@ transport.send(sessionId, type, data)</pre>
     </div>
     <p class="takeaway">The server checks every rule, so <b>one bad client can't break the game.</b></p>
   </div>
+  <div class="cue" aria-hidden="true">
+    <p>We were asked for reliable multiplayer. We started from <b>16 bugs</b>, so one rule: <b>the server decides, the clients only ask.</b></p>
+    <p>Roles sent <b>privately</b>. Every kill checked by the server: <b>imposter? cooldown over? close enough?</b> Bad moves are corrected.</p>
+    <p>Host leaves → <b>new host</b>. Imposter leaves → <b>crew wins</b>. Broken messages are <b>ignored</b>: the server never crashes.</p>
+    <p>Limits: no rejoin mid-game, a restart ends all games. UDP gives up after <b>25 resends ≈ 2.6 s</b>. Fix: a <b>time limit</b>.</p>
+  </div>
   <p class="say" hidden>The project we started from trusted the players completely: our first test found 16 bugs, like the imposter's name visible to everyone. Now the server checks every rule itself. Roles are sent privately. Every kill is checked: role, cooldown, distance. Impossible moves are corrected. When a player leaves, the game adapts: new host, or a crew win if the imposter left. Broken messages are ignored, so the server never crashes. What's not perfect yet: a reconnecting player can't rejoin a running game, a server restart ends all games, and in UDP a short Wi-Fi hiccup can drop a player a bit early.</p>
 </section>
 
@@ -624,6 +630,12 @@ transport.send(sessionId, type, data)</pre>
       </div>
     </div>
   </div>
+  <div class="cue" aria-hidden="true">
+    <p>Our own metrics. TCP: <b>the OS does connection and reliability</b>; UDP: <b>we built both</b>. Crash seen <b>at once</b> vs after <b>5 s</b>.</p>
+    <p><b>20% UDP loss</b>: still <b>38/38 checks</b>. ~40% of positions lost ≈ theory <b>1 − 0.8² = 36%</b>. On our LAN: <b>both ≈ 15 ms</b>.</p>
+    <p>TCP: free, less code, but <b>one loss blocks all behind it</b>. UDP: <b>we choose what's reliable</b>, but more code, bigger messages.</p>
+    <p>TCP for what <b>must arrive</b>: login, kills, votes, scores. UDP for <b>movement</b>: a lost position costs 50 ms, not a freeze.</p>
+  </div>
   <p class="say" hidden>We measured both versions. A crash: TCP sees it at once, UDP after 5 seconds. With 20 percent of packets dropped, the UDP game still finished and passed all 38 checks; about 40 percent of positions were lost, as the theory predicts, but the game stayed playable because a new position comes every 50 milliseconds. On our real LAN, the round trip was the same for both, about 15 milliseconds: without loss, the protocols look identical. In TCP, the operating system repairs the loss, so movement stalls instead. UDP costs more: bigger messages and about 60 percent more code. Our verdict: TCP for everything that must arrive. UDP for movement. Reliable for events, unreliable for state that expires.</p>
 </section>
 
@@ -677,6 +689,11 @@ transport.send(sessionId, type, data)</pre>
       </div>
     </div>
     <div class="fxwalk" aria-hidden="true" data-until="6"><i class="crew walk" style="--c:var(--ack);--w:60px"></i></div>
+  </div>
+  <div class="cue" aria-hidden="true">
+    <p>The libraries hid TCP, so we <b>removed them</b>. Hardest part: <b>discovering what they had been doing for us.</b></p>
+    <p>Fixes: <b>local agent</b> for the browser · <b>server checks all</b> · <b>20</b> positions/s, not 144 · <b>5 s heartbeat</b> · <b>seq, ACK, resend, token</b>.</p>
+    <p>Optimized: <b>7× less traffic</b>, no echo, smooth gliding, push not poll, <b>no Nagle</b>, <b>2 × RTT</b>, <b>&lt; 1200 B</b>, login <b>off-thread</b>.</p>
   </div>
   <p class="say" hidden>Six problems, six fixes. The original project used libraries that hid TCP, so we removed them. Browsers can't open sockets, so a local agent does it. Players could cheat, so the server now checks everything. Positions were sent up to 144 times per second; now 20. Dead players stayed connected; now a heartbeat removes them. And UDP promised nothing, so we built reliability ourselves. Then the optimizations, each with a number. Positions went from up to 144 per second to 20, and 2 when standing still. The server no longer echoes your own position back to you. Remote players glide between updates, so fewer packets still look smooth. The room list is pushed only when it changes, never polled. In TCP we turned off Nagle so small messages leave at once. In UDP the resend timer is twice the measured round trip, and every datagram stays under 1200 bytes so it is never fragmented. And password hashing runs off the main thread, so a login never freezes the game. The hardest part was not writing sockets: it was discovering what the libraries had been doing for us.</p>
 </section>
